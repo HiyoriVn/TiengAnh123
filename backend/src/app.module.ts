@@ -13,6 +13,8 @@ import { UserResult } from './entities/user-result.entity';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { CoursesModule } from './courses/courses.module';
+import { LessonsModule } from './lessons/lessons.module';
+import { EnrollmentsModule } from './enrollments/enrollments.module';
 
 @Module({
   imports: [
@@ -38,6 +40,8 @@ import { CoursesModule } from './courses/courses.module';
     UsersModule,
     AuthModule,
     CoursesModule,
+    LessonsModule,
+    EnrollmentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
