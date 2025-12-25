@@ -1,10 +1,13 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { User } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
+import { User } from '../entities/user.entity';
+import { CreateUserDto } from './create-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -13,55 +16,34 @@ export class UsersService {
     private usersRepository: Repository<User>,
   ) {}
 
-  async create(createUserDto: CreateUserDto) {
+  async create(createUserDto: CreateUserDto): Promise<User> {
+    const { username, password, email, fullName, role } = createUserDto;
+
+    // 1. Tạo "muối" (salt) để mã hóa password
+    const salt = await bcrypt.genSalt();
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // 2. Tạo đối tượng User mới
+    const user = this.usersRepository.create({
+      username,
+      password: hashedPassword, // Lưu pass đã mã hóa
+      email,
+      fullName,
+      role,
+    });
+
     try {
-      // 1. Tạo "muối" (salt) để làm mật khẩu khó đoán hơn
-      const saltOrRounds = 10;
-
-      // 2. Mã hóa mật khẩu
-      const hashedPassword = await bcrypt.hash(
-        createUserDto.password,
-        saltOrRounds,
-      );
-
-      // 3. Tạo user mới với mật khẩu ĐÃ MÃ HÓA
-      const newUser = this.usersRepository.create({
-        ...createUserDto,
-        password: hashedPassword, // Thay password gốc bằng hash
-      });
-
-      // 4. Lưu vào DB
-      return await this.usersRepository.save(newUser);
-    } catch (error: any) {
+      // 3. Lưu vào DB
+      return await this.usersRepository.save(user);
+    } catch (error) {
+      // Kiểm tra lỗi trùng lặp (Postgres error code 23505 là duplicate key)
       if (error.code === '23505') {
-        throw new BadRequestException(
-          'Email này đã tồn tại! Vui lòng chọn email khác.',
-        );
+        throw new ConflictException('Username hoặc Email đã tồn tại');
       }
-      throw error;
+      throw new InternalServerErrorException();
     }
   }
-
-  // Hàm lấy danh sách user
-  async findAll() {
-    return await this.usersRepository.find();
-  }
-
-  // Hàm tìm 1 user theo ID
-  async findOne(id: string) {
-    // Lưu ý: ID của mình là string (UUID)
-    return await this.usersRepository.findOneBy({ id });
-  }
-
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} user`;
-  }
-  // Hàm tìm user theo email (Dùng cho chức năng đăng nhập)
-  async findOneByEmail(email: string) {
-    return await this.usersRepository.findOneBy({ email });
+  async findOneByUsername(username: string): Promise<User | null> {
+    return this.usersRepository.findOne({ where: { username } });
   }
 }

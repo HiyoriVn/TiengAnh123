@@ -10,25 +10,32 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async signIn(email: string, pass: string): Promise<any> {
-    // 1. Tìm user theo email
-    const user = await this.usersService.findOneByEmail(email);
+  // Hàm 1: Kiểm tra tài khoản mật khẩu
+  async validateUser(username: string, pass: string): Promise<any> {
+    // Tìm user trong DB (bạn cần quay lại UsersService viết thêm hàm findOneByUsername nhé, xem Bước 4.1 bên dưới)
+    const user = await this.usersService.findOneByUsername(username);
 
-    // 2. Nếu không thấy user -> Báo lỗi
-    if (!user) {
-      throw new UnauthorizedException('Email không tồn tại');
+    if (user && (await bcrypt.compare(pass, user.password))) {
+      // Nếu pass khớp, trả về thông tin user (trừ password)
+      const { password, ...result } = user;
+      return result;
     }
+    return null;
+  }
 
-    // 3. So sánh mật khẩu (pass nhập vào vs pass đã mã hóa trong DB)
-    const isMatch = await bcrypt.compare(pass, user.password);
-    if (!isMatch) {
-      throw new UnauthorizedException('Mật khẩu sai');
-    }
-
-    // 4. Nếu đúng hết -> Tạo Token
-    const payload = { sub: user.id, username: user.email, role: user.role };
+  // Hàm 2: Đăng nhập và tạo Token
+  async login(user: any) {
+    const payload = { username: user.username, sub: user.id, role: user.role };
     return {
-      access_token: await this.jwtService.signAsync(payload),
+      access_token: await this.jwtService.signAsync(payload), // Tạo token từ payload
+      user: {
+        // Trả thêm thông tin cơ bản để Frontend hiển thị
+        id: user.id,
+        username: user.username,
+        fullName: user.fullName,
+        role: user.role,
+        avatar: user.avatar,
+      },
     };
   }
 }

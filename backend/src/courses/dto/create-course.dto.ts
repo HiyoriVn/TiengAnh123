@@ -1,5 +1,0 @@
-export class CreateCourseDto {
-  title: string;
-  description: string;
-  thumbnail: string;
-}

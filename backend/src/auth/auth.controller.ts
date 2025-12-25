@@ -1,32 +1,22 @@
-import {
-  Body,
-  Controller,
-  Post,
-  HttpCode,
-  HttpStatus,
-  UseGuards,
-  Get,
-  Request,
-} from '@nestjs/common';
+import { Controller, Post, Body, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { AuthGuard } from '@nestjs/passport'; // <--- Import AuthGuard
 
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @HttpCode(HttpStatus.OK)
   @Post('login')
-  signIn(@Body() signInDto: Record<string, any>) {
-    return this.authService.signIn(signInDto.email, signInDto.password);
-  }
+  async login(@Body() req) {
+    // req.username và req.password gửi từ Frontend lên
+    const user = await this.authService.validateUser(
+      req.username,
+      req.password,
+    );
 
-  // API NÀY CẦN CÓ CHÌA KHÓA MỚI VÀO ĐƯỢC
-  @UseGuards(AuthGuard('jwt')) // <--- Lắp ổ khóa 'jwt' vào đây
-  @Get('profile')
-  getProfile(@Request() req: any) {
-    // Nếu vào được đến đây nghĩa là Token xịn.
-    // NestJS đã tự động gắn thông tin user vào biến req.user
-    return req.user;
+    if (!user) {
+      throw new UnauthorizedException('Tài khoản hoặc mật khẩu không đúng');
+    }
+
+    return this.authService.login(user);
   }
 }

@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
-import { User } from './entities/user.entity';
+import { UsersService } from './users.service';
+import { User } from '../entities/user.entity'; // Import Entity User
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User])],
+  imports: [TypeOrmModule.forFeature([User])], // <--- Đăng ký Repository User
   controllers: [UsersController],
   providers: [UsersService],
-  exports: [UsersService],
+  exports: [UsersService], // Export để sau này Module Auth dùng
 })
 export class UsersModule {}

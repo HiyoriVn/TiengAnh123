@@ -1,7 +1,10 @@
+version: "3.8"
+
 services:
   db:
     image: postgres:15
     container_name: tienganh123_db
+    restart: always
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: adminpassword
@@ -10,6 +13,8 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
+  # Sau này có thể thêm pgAdmin vào đây để quản lý DB bằng giao diện web nếu muốn
 
 volumes:
   postgres_data:
