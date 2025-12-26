@@ -15,6 +15,11 @@ import { AuthModule } from './auth/auth.module';
 import { CoursesModule } from './courses/courses.module';
 import { LessonsModule } from './lessons/lessons.module';
 import { EnrollmentsModule } from './enrollments/enrollments.module';
+import { Document } from './entities/document.entity';
+import { Submission } from './entities/submission.entity';
+import { DocumentsModule } from './documents/documents.module';
+import { AssessmentsModule } from './assessments/assessments.module';
+import { SubmissionsModule } from './submissions/submissions.module';
 
 @Module({
   imports: [
@@ -34,6 +39,8 @@ import { EnrollmentsModule } from './enrollments/enrollments.module';
         Question,
         Answer,
         UserResult,
+        Document,
+        Submission,
       ],
       synchronize: true, // Tự động tạo bảng (chỉ dùng cho Dev)
     }),
@@ -42,6 +49,9 @@ import { EnrollmentsModule } from './enrollments/enrollments.module';
     CoursesModule,
     LessonsModule,
     EnrollmentsModule,
+    DocumentsModule,
+    AssessmentsModule,
+    SubmissionsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

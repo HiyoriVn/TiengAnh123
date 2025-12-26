@@ -63,4 +63,19 @@ export class LessonsService {
     if (!lesson) throw new NotFoundException('Bài học không tồn tại');
     return lesson;
   }
+  async approveLesson(id: string, status: 'APPROVED' | 'REJECTED') {
+    const lesson = await this.lessonRepository.findOne({ where: { id } });
+    if (!lesson) throw new NotFoundException('Bài học không tồn tại');
+
+    lesson.approvalStatus = status;
+    return this.lessonRepository.save(lesson);
+  }
+
+  // 2. Lấy danh sách bài cần duyệt (PENDING)
+  async findPendingLessons() {
+    return this.lessonRepository.find({
+      where: { approvalStatus: 'PENDING' },
+      relations: ['course', 'course.creator'], // Lấy thông tin khóa học và giảng viên để Admin xem
+    });
+  }
 }

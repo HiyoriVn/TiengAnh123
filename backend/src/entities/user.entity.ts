@@ -56,6 +56,10 @@ export class User {
 
   @DeleteDateColumn({ name: 'deleted_at' }) // Hỗ trợ xóa mềm (Soft Delete)
   deletedAt: Date;
+
+  @Column({ default: 'ACTIVE' })
+  status: string;
+
   // Mối quan hệ 1: Một user có thể tạo nhiều khóa học (Giảng viên)
   @OneToMany(() => Course, (course) => course.creator)
   createdCourses: Course[];

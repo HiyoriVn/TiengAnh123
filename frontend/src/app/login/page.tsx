@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import api from "@/utils/api"; // Import instance axios đã cấu hình
+import api from "@/utils/api";
+import { AxiosError } from "axios"; // 1. Import thêm AxiosError
 
 export default function LoginPage() {
   const router = useRouter();
 
-  // State lưu dữ liệu form
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -15,7 +15,6 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Xử lý khi nhập liệu
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
@@ -23,35 +22,34 @@ export default function LoginPage() {
     });
   };
 
-  // Xử lý khi bấm nút Đăng nhập
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault(); // Chặn reload trang
+    e.preventDefault();
     setError("");
     setLoading(true);
 
     try {
-      // 1. Gọi API đăng nhập từ Backend
       const response = await api.post("/auth/login", formData);
 
-      // 2. Nếu thành công -> Lưu token vào LocalStorage
       const { access_token, user } = response.data;
       localStorage.setItem("access_token", access_token);
       localStorage.setItem("user_info", JSON.stringify(user));
       window.dispatchEvent(new Event("auth-change"));
-      // 3. Chuyển hướng về trang chủ
+
       alert("Đăng nhập thành công!");
       router.push("/");
-    } catch (err: any) {
-      // Xử lý lỗi (ví dụ sai pass)
+    } catch (err) {
+      // 2. Sửa đoạn catch lỗi: Ép kiểu về AxiosError
       console.error(err);
+      const error = err as AxiosError<{ message: string }>;
       setError(
-        err.response?.data?.message || "Có lỗi xảy ra, vui lòng thử lại."
+        error.response?.data?.message || "Có lỗi xảy ra, vui lòng thử lại."
       );
     } finally {
       setLoading(false);
     }
   };
 
+  // ... (Phần return giữ nguyên như cũ của bạn)
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="bg-white p-8 rounded-xl shadow-md w-full max-w-md">
@@ -59,7 +57,6 @@ export default function LoginPage() {
           Đăng Nhập
         </h2>
 
-        {/* Hiển thị lỗi nếu có */}
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 text-sm">
             {error}
@@ -67,7 +64,6 @@ export default function LoginPage() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Username */}
           <div>
             <label className="block text-gray-700 mb-1">Tên đăng nhập</label>
             <input
@@ -81,7 +77,6 @@ export default function LoginPage() {
             />
           </div>
 
-          {/* Password */}
           <div>
             <label className="block text-gray-700 mb-1">Mật khẩu</label>
             <input
@@ -95,7 +90,6 @@ export default function LoginPage() {
             />
           </div>
 
-          {/* Button Submit */}
           <button
             type="submit"
             disabled={loading}

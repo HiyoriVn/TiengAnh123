@@ -2,6 +2,7 @@ import {
   Injectable,
   ConflictException,
   InternalServerErrorException,
+  NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -45,5 +46,20 @@ export class UsersService {
   }
   async findOneByUsername(username: string): Promise<User | null> {
     return this.usersRepository.findOne({ where: { username } });
+  }
+  // 1. Lấy danh sách tất cả user (Trừ password)
+  async findAll(): Promise<User[]> {
+    return this.usersRepository.find({
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  // 2. Cập nhật trạng thái (Khóa / Mở khóa)
+  async updateStatus(id: string, status: 'ACTIVE' | 'LOCKED'): Promise<User> {
+    const user = await this.usersRepository.findOne({ where: { id } });
+    if (!user) throw new NotFoundException('Người dùng không tồn tại');
+
+    user.status = status;
+    return this.usersRepository.save(user);
   }
 }

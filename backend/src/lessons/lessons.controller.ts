@@ -6,11 +6,13 @@ import {
   Param,
   UseGuards,
   Request,
-  Query,
+  Patch,
 } from '@nestjs/common';
 import { LessonsService } from './lessons.service';
 import { CreateLessonDto } from './create-lesson.dto';
 import { AuthGuard } from '@nestjs/passport';
+import { Roles } from '../auth/roles.decorator';
+import { RolesGuard } from '../auth/roles.guard';
 
 @Controller('lessons')
 export class LessonsController {
@@ -34,5 +36,23 @@ export class LessonsController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.lessonsService.findOne(id);
+  }
+  // API: Lấy danh sách bài chờ duyệt (Chỉ Admin)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN')
+  @Get('pending/all')
+  findPending() {
+    return this.lessonsService.findPendingLessons();
+  }
+
+  // API: Duyệt bài (Chỉ Admin)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN')
+  @Patch(':id/approve')
+  approve(
+    @Param('id') id: string,
+    @Body('status') status: 'APPROVED' | 'REJECTED',
+  ) {
+    return this.lessonsService.approveLesson(id, status);
   }
 }

@@ -6,6 +6,8 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { Course } from './course.entity';
+import { OneToMany } from 'typeorm';
+import { Document } from './document.entity';
 
 @Entity('lessons')
 export class Lesson {
@@ -31,4 +33,12 @@ export class Lesson {
   @ManyToOne(() => Course, (course) => course.lessons)
   @JoinColumn({ name: 'course_id' })
   course: Course;
+
+  // Trạng thái duyệt bài (PENDING / APPROVED / REJECTED)
+  @Column({ name: 'approval_status', default: 'PENDING' })
+  approvalStatus: string;
+
+  // Quan hệ 1 bài học có nhiều tài liệu đính kèm
+  @OneToMany(() => Document, (document) => document.lesson)
+  documents: Document[];
 }
