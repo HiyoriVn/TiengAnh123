@@ -16,7 +16,13 @@ const MENU_ITEMS: Record<
   STUDENT: [
     { icon: "dashboard", label: "Tổng quan", href: "/student/dashboard" },
     { icon: "school", label: "Khóa học của tôi", href: "/student/my-courses" },
-    { icon: "route", label: "Lộ trình học", href: "/student/learning-path" },
+    { icon: "explore", label: "Khám phá khóa học", href: "/student/courses" },
+    {
+      icon: "quiz",
+      label: "Kiểm tra trình độ",
+      href: "/student/placement-test",
+    },
+    { icon: "folder", label: "Thư viện tài liệu", href: "/student/documents" },
     {
       icon: "emoji_events",
       label: "Thành tích",
@@ -26,6 +32,21 @@ const MENU_ITEMS: Record<
   LECTURER: [
     { icon: "dashboard", label: "Tổng quan", href: "/teacher/dashboard" },
     { icon: "class", label: "Khóa học của tôi", href: "/teacher/courses" },
+    {
+      icon: "add_circle",
+      label: "Tạo bài học",
+      href: "/teacher/lessons/create",
+    },
+    {
+      icon: "assignment",
+      label: "Tạo bài tập",
+      href: "/teacher/exercises/create",
+    },
+    {
+      icon: "quiz",
+      label: "Bài kiểm tra đầu vào",
+      href: "/teacher/placement-test/create",
+    },
     { icon: "group", label: "Học viên", href: "/teacher/students" },
     { icon: "folder", label: "Tài liệu", href: "/teacher/documents" },
     { icon: "grade", label: "Chấm điểm", href: "/teacher/grading" },
@@ -33,7 +54,7 @@ const MENU_ITEMS: Record<
   ADMIN: [
     { icon: "dashboard", label: "Tổng quan", href: "/admin/dashboard" },
     { icon: "people", label: "Quản lý người dùng", href: "/admin/users" },
-    { icon: "school", label: "Quản lý khóa học", href: "/admin/courses" },
+    { icon: "school", label: "Duyệt nội dung", href: "/admin/content" },
     { icon: "bar_chart", label: "Báo cáo", href: "/admin/reports" },
     { icon: "settings", label: "Cài đặt", href: "/admin/settings" },
   ],

@@ -6,7 +6,7 @@ import {
   Min,
   IsEnum,
 } from 'class-validator';
-import { CourseStatus } from '../entities/course.entity';
+import { CourseStatus, CourseLevel } from '../entities/course.entity';
 
 export class CreateCourseDto {
   @IsNotEmpty({ message: 'Tiêu đề khóa học không được để trống' })
@@ -29,4 +29,10 @@ export class CreateCourseDto {
   @IsOptional()
   @IsEnum(CourseStatus)
   status?: CourseStatus; // DRAFT hoặc PUBLISHED
+
+  @IsOptional()
+  @IsEnum(CourseLevel, {
+    message: 'Level phải là A1, A2, B1, B2, C1, C2 hoặc ALL',
+  })
+  level?: CourseLevel;
 }

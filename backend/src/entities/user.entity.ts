@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   DeleteDateColumn,
+  Index,
 } from 'typeorm';
 import { OneToMany } from 'typeorm';
 import { Course } from './course.entity';
@@ -18,6 +19,8 @@ export enum UserRole {
 }
 
 @Entity('users') // Tên bảng trong Database là 'users' [cite: 277]
+@Index(['points'])
+@Index(['role', 'points'])
 export class User {
   @PrimaryGeneratedColumn('uuid') // Kiểu dữ liệu UUID
   id: string;
@@ -47,6 +50,16 @@ export class User {
     default: UserRole.STUDENT, // Mặc định là học viên
   })
   role: UserRole;
+
+  // Gamification fields
+  @Column({ default: 0 })
+  points: number;
+
+  @Column({ default: 0 })
+  streak: number;
+
+  @Column({ type: 'date', nullable: true, name: 'last_activity_date' })
+  lastActivityDate: Date;
 
   @CreateDateColumn({ name: 'created_at' }) // DB là created_at
   createdAt: Date;

@@ -4,12 +4,15 @@ import {
   PrimaryGeneratedColumn,
   ManyToOne,
   JoinColumn,
+  Index,
 } from 'typeorm';
 import { Course } from './course.entity';
 import { OneToMany } from 'typeorm';
 import { Document } from './document.entity';
 
 @Entity('lessons')
+@Index(['course'])
+@Index(['approvalStatus'])
 export class Lesson {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -25,6 +28,9 @@ export class Lesson {
 
   @Column({ name: 'audio_url', nullable: true })
   audioUrl: string;
+
+  @Column({ name: 'pdf_url', nullable: true })
+  pdfUrl: string;
 
   @Column({ name: 'order_index', type: 'int', default: 1 })
   orderIndex: number;

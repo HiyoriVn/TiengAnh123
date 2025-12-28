@@ -25,6 +25,14 @@ export class CreateLessonDto {
   videoUrl?: string;
 
   @IsOptional()
+  @IsString()
+  audioUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  pdfUrl?: string;
+
+  @IsOptional()
   @IsInt()
   @Min(1)
   orderIndex?: number; // Thứ tự bài học (Bài 1, Bài 2...)

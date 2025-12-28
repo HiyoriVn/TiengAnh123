@@ -29,7 +29,17 @@ export class CoursesService {
   // 2. Lấy tất cả khóa học (Có thể dùng cho trang chủ)
   async findAll(): Promise<Course[]> {
     return this.courseRepository.find({
-      relations: ['creator'], // Lấy kèm thông tin người tạo
+      relations: ['creator', 'lessons', 'enrollments'], // Lấy kèm thông tin người tạo và thống kê
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  // 2.5. Lấy khóa học của giảng viên cụ thể
+  async findByCreator(creatorId: string): Promise<Course[]> {
+    return this.courseRepository.find({
+      where: { creator: { id: creatorId } },
+      relations: ['creator', 'lessons', 'enrollments'],
+      order: { createdAt: 'DESC' },
     });
   }
 

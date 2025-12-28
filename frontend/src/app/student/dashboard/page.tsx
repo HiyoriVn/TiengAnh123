@@ -4,14 +4,22 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks";
 import { getCourses } from "@/lib/api";
-import DashboardLayout from "@/components/layouts/DashboardLayout";
 
 interface CourseData {
-  id: number;
+  id: string;
   title: string;
   coverUrl?: string;
   unit?: string;
   progress?: number;
+}
+
+interface AchievementData {
+  id: string;
+  type: string;
+  name: string;
+  description: string;
+  icon: string;
+  earnedAt: string;
 }
 
 export default function StudentDashboard() {
@@ -19,6 +27,9 @@ export default function StudentDashboard() {
   const [mounted, setMounted] = useState(false);
   const [activeCourse, setActiveCourse] = useState<CourseData | null>(null);
   const [loadingCourse, setLoadingCourse] = useState(true);
+  const [recentAchievements, setRecentAchievements] = useState<
+    AchievementData[]
+  >([]);
 
   /* =======================
      DATE (CLIENT SAFE)
@@ -54,16 +65,27 @@ export default function StudentDashboard() {
 
     const fetchCourses = async () => {
       try {
-        const { data } = await getCourses();
-        if (data && data.length > 0) {
-          const firstCourse = data[0];
-          setActiveCourse({
-            id: Number(firstCourse.id),
-            title: firstCourse.title,
-            coverUrl: firstCourse.coverUrl,
-            unit: "Bắt đầu ngay",
-            progress: 0,
-          });
+        const token = localStorage.getItem("token");
+        const response = await fetch(
+          "http://localhost:3000/enrollments/my-courses",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        if (response.ok) {
+          const data = await response.json();
+          if (data && data.length > 0) {
+            const firstEnrollment = data[0];
+            setActiveCourse({
+              id: firstEnrollment.course.id,
+              title: firstEnrollment.course.title,
+              coverUrl: firstEnrollment.course.coverUrl,
+              unit: "Bắt đầu ngay",
+              progress: firstEnrollment.progress || 0,
+            });
+          }
         }
       } catch (err) {
         console.error("Failed to fetch courses", err);
@@ -72,7 +94,28 @@ export default function StudentDashboard() {
       }
     };
 
+    const fetchAchievements = async () => {
+      try {
+        const response = await fetch(
+          "http://localhost:3000/gamification/my-achievements",
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+        if (response.ok) {
+          const data = await response.json();
+          // Lấy 3 huy hiệu mới nhất
+          setRecentAchievements(data.slice(0, 3));
+        }
+      } catch (err) {
+        console.error("Failed to fetch achievements", err);
+      }
+    };
+
     fetchCourses();
+    fetchAchievements();
   }, []);
 
   /* =======================
@@ -87,173 +130,204 @@ export default function StudentDashboard() {
   }
 
   return (
-    <DashboardLayout>
-      <div className="max-w-7xl mx-auto flex flex-col gap-8">
-        {/* Welcome Section */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div>
-            <h2 className="text-2xl md:text-3xl font-bold text-primary dark:text-ice">
-              Chào mừng trở lại, {user?.fullName?.split(" ").pop() || "bạn"}! 👋
-            </h2>
-            <p className="text-text-sub-light dark:text-text-sub-dark mt-1">
-              Tiếp tục hành trình chinh phục Tiếng Anh Giao Tiếp hôm nay nhé.
-            </p>
-          </div>
-          <div className="hidden md:block">
-            <p className="text-sm text-text-sub-light dark:text-text-sub-dark text-right">
-              {currentDate}
-            </p>
-          </div>
+    <div className="max-w-7xl mx-auto flex flex-col gap-8">
+      {/* Welcome Section */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <h2 className="text-2xl md:text-3xl font-bold text-primary dark:text-ice">
+            Chào mừng trở lại, {user?.fullName?.split(" ").pop() || "bạn"}! 👋
+          </h2>
+          <p className="text-text-sub-light dark:text-text-sub-dark mt-1">
+            Tiếp tục hành trình chinh phục Tiếng Anh Giao Tiếp hôm nay nhé.
+          </p>
         </div>
+        <div className="hidden md:block">
+          <p className="text-sm text-text-sub-light dark:text-text-sub-dark text-right">
+            {currentDate}
+          </p>
+        </div>
+      </div>
 
-        {/* ... (Phần nội dung Grid 12 cột giữ nguyên như cũ) ... */}
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
-          <div className="xl:col-span-8 flex flex-col gap-6">
-            {/* Xử lý hiển thị: Loading / Có khóa học / Không có khóa học */}
-            {loadingCourse ? (
-              <div className="h-48 bg-gray-100 dark:bg-card-dark rounded-2xl animate-pulse flex items-center justify-center text-text-sub-light">
-                Đang tải khóa học...
-              </div>
-            ) : activeCourse ? (
-              <div className="bg-card-light dark:bg-card-dark rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-primary/30 relative overflow-hidden group">
-                {/* ... (giữ nguyên phần background decoration) ... */}
-                <div className="relative z-10 flex flex-col md:flex-row gap-6 items-start md:items-center">
-                  {/* Ảnh Thumbnail từ API */}
-                  <div
-                    className="w-full md:w-32 h-32 flex-shrink-0 rounded-xl bg-cover bg-center shadow-md border border-gray-100 dark:border-primary"
-                    style={{
-                      backgroundImage: `url('${
-                        activeCourse.coverUrl ||
-                        "https://images.unsplash.com/photo-1543269865-cbf427effbad?auto=format&fit=crop&w=400&q=80"
-                      }')`,
-                    }}
-                  ></div>
-                  <div className="flex-1 w-full">
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <span className="inline-block px-2 py-1 rounded bg-ice text-primary text-xs font-bold mb-2">
-                          ĐANG HỌC
-                        </span>
-                        {/* Tên khóa học từ API */}
-                        <h3 className="text-xl font-bold text-text-main-light dark:text-white">
-                          {activeCourse.title}
-                        </h3>
-                      </div>
+      {/* ... (Phần nội dung Grid 12 cột giữ nguyên như cũ) ... */}
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+        <div className="xl:col-span-8 flex flex-col gap-6">
+          {/* Xử lý hiển thị: Loading / Có khóa học / Không có khóa học */}
+          {loadingCourse ? (
+            <div className="h-48 bg-gray-100 dark:bg-card-dark rounded-2xl animate-pulse flex items-center justify-center text-text-sub-light">
+              Đang tải khóa học...
+            </div>
+          ) : activeCourse ? (
+            <div className="bg-card-light dark:bg-card-dark rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-primary/30 relative overflow-hidden group">
+              {/* ... (giữ nguyên phần background decoration) ... */}
+              <div className="relative z-10 flex flex-col md:flex-row gap-6 items-start md:items-center">
+                {/* Ảnh Thumbnail từ API */}
+                <div
+                  className="w-full md:w-32 h-32 flex-shrink-0 rounded-xl bg-cover bg-center shadow-md border border-gray-100 dark:border-primary"
+                  style={{
+                    backgroundImage: `url('${
+                      activeCourse.coverUrl ||
+                      "https://images.unsplash.com/photo-1543269865-cbf427effbad?auto=format&fit=crop&w=400&q=80"
+                    }')`,
+                  }}
+                ></div>
+                <div className="flex-1 w-full">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <span className="inline-block px-2 py-1 rounded bg-ice text-primary text-xs font-bold mb-2">
+                        ĐANG HỌC
+                      </span>
+                      {/* Tên khóa học từ API */}
+                      <h3 className="text-xl font-bold text-text-main-light dark:text-white">
+                        {activeCourse.title}
+                      </h3>
                     </div>
-                    {/* ... (các phần khác giữ nguyên hoặc dùng activeCourse.unit/progress) ... */}
+                  </div>
+                  {/* ... (các phần khác giữ nguyên hoặc dùng activeCourse.unit/progress) ... */}
 
-                    {/* Nút Học tiếp dẫn đến trang chi tiết */}
-                    <div className="mt-5 flex gap-3">
-                      <Link
-                        href={`/learn/${activeCourse.id}`} // Link động theo ID khóa học
-                        className="bg-accent hover:bg-[#F0C8BC] text-navy px-5 py-2.5 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors shadow-lg shadow-accent/20"
-                      >
-                        <span>Học tiếp</span>
-                        <span className="material-symbols-outlined text-lg">
-                          arrow_forward
-                        </span>
-                      </Link>
-                    </div>
+                  {/* Nút Học tiếp dẫn đến trang chi tiết */}
+                  <div className="mt-5 flex gap-3">
+                    <Link
+                      href={`/learn/${activeCourse.id}`} // Link động theo ID khóa học
+                      className="bg-accent hover:bg-[#F0C8BC] text-navy px-5 py-2.5 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors shadow-lg shadow-accent/20"
+                    >
+                      <span>Học tiếp</span>
+                      <span className="material-symbols-outlined text-lg">
+                        arrow_forward
+                      </span>
+                    </Link>
                   </div>
                 </div>
               </div>
-            ) : (
-              // Trường hợp chưa có khóa học nào
-              <div className="p-6 bg-white dark:bg-card-dark rounded-xl text-center border border-dashed border-gray-300 dark:border-gray-700">
-                <p className="mb-4 text-text-sub-light dark:text-text-sub-dark">
-                  Bạn chưa đăng ký khóa học nào.
-                </p>
-                <Link
-                  href="/courses"
-                  className="text-primary font-bold hover:underline"
-                >
-                  Xem danh sách khóa học
-                </Link>
-              </div>
-            )}
+            </div>
+          ) : (
+            // Trường hợp chưa có khóa học nào
+            <div className="p-6 bg-white dark:bg-card-dark rounded-xl text-center border border-dashed border-gray-300 dark:border-gray-700">
+              <p className="mb-4 text-text-sub-light dark:text-text-sub-dark">
+                Bạn chưa đăng ký khóa học nào.
+              </p>
+              <Link
+                href="/courses"
+                className="text-primary font-bold hover:underline"
+              >
+                Xem danh sách khóa học
+              </Link>
+            </div>
+          )}
 
-            {/* Skills */}
-          </div>
+          {/* Skills */}
+        </div>
 
-          {/* RIGHT COLUMN */}
-          <div className="xl:col-span-4 flex flex-col gap-6">
-            <div className="grid grid-cols-2 gap-4">
-              {/* Sửa phần hiển thị số liệu từ state user */}
-              <div className="bg-card-light dark:bg-card-dark p-4 rounded-xl border border-gray-100 dark:border-primary/30 flex flex-col items-center justify-center text-center shadow-sm">
-                <div className="w-10 h-10 rounded-full bg-accent/30 flex items-center justify-center text-navy mb-2">
-                  <span className="material-symbols-outlined fill-1">
-                    local_fire_department
-                  </span>
-                </div>
-                <span className="text-2xl font-bold text-text-main-light dark:text-white">
-                  {user?.streak || 0}
-                </span>
-                <span className="text-xs text-text-sub-light dark:text-text-sub-dark font-medium">
-                  Ngày liên tiếp
+        {/* RIGHT COLUMN */}
+        <div className="xl:col-span-4 flex flex-col gap-6">
+          <div className="grid grid-cols-2 gap-4">
+            {/* Sửa phần hiển thị số liệu từ state user */}
+            <div className="bg-card-light dark:bg-card-dark p-4 rounded-xl border border-gray-100 dark:border-primary/30 flex flex-col items-center justify-center text-center shadow-sm">
+              <div className="w-10 h-10 rounded-full bg-accent/30 flex items-center justify-center text-navy mb-2">
+                <span className="material-symbols-outlined fill-1">
+                  local_fire_department
                 </span>
               </div>
-
-              <div className="bg-card-light dark:bg-card-dark p-4 rounded-xl border border-gray-100 dark:border-primary/30 flex flex-col items-center justify-center text-center shadow-sm">
-                <div className="w-10 h-10 rounded-full bg-ice flex items-center justify-center text-secondary mb-2">
-                  <span className="material-symbols-outlined fill-1">
-                    monetization_on
-                  </span>
-                </div>
-                <span className="text-2xl font-bold text-text-main-light dark:text-white">
-                  {user?.points?.toLocaleString() || "0"}
-                </span>
-                <span className="text-xs text-text-sub-light dark:text-text-sub-dark font-medium">
-                  Điểm thưởng
-                </span>
-              </div>
+              <span className="text-2xl font-bold text-text-main-light dark:text-white">
+                {user?.streak || 0}
+              </span>
+              <span className="text-xs text-text-sub-light dark:text-text-sub-dark font-medium">
+                Ngày liên tiếp
+              </span>
             </div>
 
-            <div className="bg-card-light dark:bg-card-dark p-5 rounded-xl border border-gray-100 dark:border-primary/30 shadow-sm">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="font-bold text-text-main-light dark:text-white">
-                  Thời gian học
-                </h3>
-                <select className="text-xs bg-transparent border-none text-text-sub-light dark:text-text-sub-dark font-medium focus:ring-0 cursor-pointer">
-                  <option>Tuần này</option>
-                  <option>Tuần trước</option>
-                </select>
+            <div className="bg-card-light dark:bg-card-dark p-4 rounded-xl border border-gray-100 dark:border-primary/30 flex flex-col items-center justify-center text-center shadow-sm">
+              <div className="w-10 h-10 rounded-full bg-ice flex items-center justify-center text-secondary mb-2">
+                <span className="material-symbols-outlined fill-1">
+                  monetization_on
+                </span>
               </div>
-              <div className="flex items-end justify-between h-32 gap-2">
-                {studyTime.map((item, index) => (
+              <span className="text-2xl font-bold text-text-main-light dark:text-white">
+                {user?.points?.toLocaleString() || "0"}
+              </span>
+              <span className="text-xs text-text-sub-light dark:text-text-sub-dark font-medium">
+                Điểm thưởng
+              </span>
+            </div>
+          </div>
+
+          <div className="bg-card-light dark:bg-card-dark p-5 rounded-xl border border-gray-100 dark:border-primary/30 shadow-sm">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="font-bold text-text-main-light dark:text-white">
+                Thời gian học
+              </h3>
+              <select className="text-xs bg-transparent border-none text-text-sub-light dark:text-text-sub-dark font-medium focus:ring-0 cursor-pointer">
+                <option>Tuần này</option>
+                <option>Tuần trước</option>
+              </select>
+            </div>
+            <div className="flex items-end justify-between h-32 gap-2">
+              {studyTime.map((item, index) => (
+                <div
+                  key={index}
+                  className="flex flex-col items-center gap-2 w-full group cursor-pointer"
+                >
                   <div
-                    key={index}
-                    className="flex flex-col items-center gap-2 w-full group cursor-pointer"
-                  >
-                    <div
-                      className={`w-full max-w-[24px] rounded-t-sm transition-all relative group-hover:opacity-80
+                    className={`w-full max-w-[24px] rounded-t-sm transition-all relative group-hover:opacity-80
                             ${
                               item.isToday
                                 ? "bg-accent shadow-[0_0_10px_rgba(248,218,208,0.5)]"
                                 : "bg-ice/70 dark:bg-navy"
                             }`}
-                      style={{ height: `${item.percent}%` }}
-                    ></div>
-                    <span
-                      className={`text-[10px] font-medium ${
-                        item.isToday
-                          ? "text-primary dark:text-accent font-bold"
-                          : "text-text-sub-light dark:text-text-sub-dark"
-                      }`}
-                    >
-                      {item.day}
-                    </span>
+                    style={{ height: `${item.percent}%` }}
+                  ></div>
+                  <span
+                    className={`text-[10px] font-medium ${
+                      item.isToday
+                        ? "text-primary dark:text-accent font-bold"
+                        : "text-text-sub-light dark:text-text-sub-dark"
+                    }`}
+                  >
+                    {item.day}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-card-light dark:bg-card-dark p-5 rounded-xl border border-gray-100 dark:border-primary/30 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-bold text-text-main-light dark:text-white">
+                Huy hiệu mới
+              </h3>
+              <Link
+                href="/student/achievements"
+                className="text-xs text-primary hover:underline font-medium"
+              >
+                Xem tất cả
+              </Link>
+            </div>
+            {recentAchievements.length > 0 ? (
+              <div className="flex flex-col gap-3">
+                {recentAchievements.map((achievement) => (
+                  <div
+                    key={achievement.id}
+                    className="flex items-center gap-3 p-3 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white shadow-md flex-shrink-0">
+                      <span className="material-symbols-outlined text-lg">
+                        {achievement.icon}
+                      </span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                        {achievement.name}
+                      </p>
+                      <p className="text-xs text-gray-600 dark:text-gray-400">
+                        {new Date(achievement.earnedAt).toLocaleDateString(
+                          "vi-VN"
+                        )}
+                      </p>
+                    </div>
                   </div>
                 ))}
               </div>
-            </div>
-
-            <div className="bg-card-light dark:bg-card-dark p-5 rounded-xl border border-gray-100 dark:border-primary/30 shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-bold text-text-main-light dark:text-white">
-                  Huy hiệu mới
-                </h3>
-              </div>
-              {/* Trạng thái trống: Chưa có huy hiệu */}
+            ) : (
+              /* Trạng thái trống: Chưa có huy hiệu */
               <div className="flex flex-col items-center justify-center py-6 text-center">
                 <div className="w-14 h-14 bg-gray-100 dark:bg-navy rounded-full flex items-center justify-center mb-3 text-gray-400">
                   <span className="material-symbols-outlined text-3xl">
@@ -267,26 +341,26 @@ export default function StudentDashboard() {
                   Hãy hoàn thành bài học để mở khóa!
                 </p>
               </div>
-            </div>
+            )}
+          </div>
 
-            <div className="bg-gradient-to-br from-navy to-primary rounded-xl p-5 text-white shadow-lg relative overflow-hidden">
-              <span className="material-symbols-outlined absolute -right-4 -top-4 text-8xl text-white opacity-5">
-                lightbulb
-              </span>
-              <h4 className="font-bold text-sm mb-2 relative z-10 flex items-center gap-2">
-                <span className="material-symbols-outlined text-sm text-accent">
-                  tips_and_updates
-                </span>{" "}
-                Mẹo học tập
-              </h4>
-              <p className="text-xs text-blue-100 leading-relaxed relative z-10">
-                Hãy thử ghi âm lại giọng nói của bạn khi luyện Speaking để tự
-                đánh giá phát âm nhé!
-              </p>
-            </div>
+          <div className="bg-gradient-to-br from-navy to-primary rounded-xl p-5 text-white shadow-lg relative overflow-hidden">
+            <span className="material-symbols-outlined absolute -right-4 -top-4 text-8xl text-white opacity-5">
+              lightbulb
+            </span>
+            <h4 className="font-bold text-sm mb-2 relative z-10 flex items-center gap-2">
+              <span className="material-symbols-outlined text-sm text-accent">
+                tips_and_updates
+              </span>{" "}
+              Mẹo học tập
+            </h4>
+            <p className="text-xs text-blue-100 leading-relaxed relative z-10">
+              Hãy thử ghi âm lại giọng nói của bạn khi luyện Speaking để tự đánh
+              giá phát âm nhé!
+            </p>
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </div>
   );
 }

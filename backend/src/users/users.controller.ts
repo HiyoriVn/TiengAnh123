@@ -9,9 +9,11 @@ import {
   Param,
   UseGuards,
   Request,
+  Delete,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './create-user.dto';
+import { UpdateUserDto } from './update-user.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { Put, Query } from '@nestjs/common';
 import { Roles } from '../auth/roles.decorator';
@@ -52,5 +54,22 @@ export class UsersController {
     @Body('status') status: 'ACTIVE' | 'LOCKED',
   ) {
     return this.usersService.updateStatus(id, status);
+  }
+
+  // API 3: Update user info (Admin)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN')
+  @Patch(':id')
+  @UsePipes(ValidationPipe)
+  updateUser(@Param('id') id: string, @Body() updateData: UpdateUserDto) {
+    return this.usersService.updateUser(id, updateData);
+  }
+
+  // API 4: Delete user (Admin, soft delete)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN')
+  @Delete(':id')
+  deleteUser(@Param('id') id: string) {
+    return this.usersService.deleteUser(id);
   }
 }

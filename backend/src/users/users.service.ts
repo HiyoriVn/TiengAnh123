@@ -90,4 +90,24 @@ export class UsersService {
     user.status = status;
     return this.usersRepository.save(user);
   }
+
+  // 3. Admin update user info
+  async updateUser(id: string, updateData: Partial<User>): Promise<User> {
+    const user = await this.usersRepository.findOne({ where: { id } });
+    if (!user) throw new NotFoundException('Người dùng không tồn tại');
+
+    // Không cho update password, username qua method này
+    const { password, username, ...safeData } = updateData as any;
+
+    Object.assign(user, safeData);
+    return this.usersRepository.save(user);
+  }
+
+  // 4. Delete user (soft delete)
+  async deleteUser(id: string): Promise<void> {
+    const user = await this.usersRepository.findOne({ where: { id } });
+    if (!user) throw new NotFoundException('Người dùng không tồn tại');
+
+    await this.usersRepository.softDelete(id);
+  }
 }

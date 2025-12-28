@@ -1,6 +1,9 @@
 import {
   Controller,
+  Get,
   Post,
+  Delete,
+  Param,
   UseInterceptors,
   UploadedFile,
   Body,
@@ -54,5 +57,25 @@ export class DocumentsController {
   ) {
     if (!file) throw new BadRequestException('Chưa chọn file nào');
     return this.documentsService.uploadFile(file, lessonId, req.user);
+  }
+
+  // GET /documents - Lấy tất cả documents của user hiện tại (giảng viên)
+  @Get()
+  @UseGuards(AuthGuard('jwt'))
+  async getMyDocuments(@Request() req) {
+    return this.documentsService.findByUser(req.user.id);
+  }
+
+  // GET /documents/lesson/:lessonId - Lấy documents của một lesson
+  @Get('lesson/:lessonId')
+  async getDocumentsByLesson(@Param('lessonId') lessonId: string) {
+    return this.documentsService.findByLesson(lessonId);
+  }
+
+  // DELETE /documents/:id - Xóa document
+  @Delete(':id')
+  @UseGuards(AuthGuard('jwt'))
+  async deleteDocument(@Param('id') id: string, @Request() req) {
+    return this.documentsService.deleteDocument(id, req.user);
   }
 }

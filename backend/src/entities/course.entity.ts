@@ -18,6 +18,16 @@ export enum CourseStatus {
   PUBLISHED = 'PUBLISHED',
 }
 
+export enum CourseLevel {
+  A1 = 'A1', // Beginner
+  A2 = 'A2', // Elementary
+  B1 = 'B1', // Intermediate
+  B2 = 'B2', // Upper Intermediate
+  C1 = 'C1', // Advanced
+  C2 = 'C2', // Proficient
+  ALL = 'ALL', // Mọi trình độ
+}
+
 @Entity('courses')
 export class Course {
   @PrimaryGeneratedColumn('uuid')
@@ -41,6 +51,13 @@ export class Course {
     default: CourseStatus.DRAFT,
   })
   status: CourseStatus;
+
+  @Column({
+    type: 'enum',
+    enum: CourseLevel,
+    default: CourseLevel.ALL,
+  })
+  level: CourseLevel;
 
   // Quan hệ: Nhiều khóa học thuộc về 1 người tạo
   @ManyToOne(() => User, (user) => user.createdCourses)

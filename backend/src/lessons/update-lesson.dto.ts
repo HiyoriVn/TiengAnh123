@@ -1,7 +1,29 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateLessonDto } from './create-lesson.dto';
+import { IsString, IsOptional, IsUrl, IsNumber, Min } from 'class-validator';
 
-// Khi update thì không cho sửa courseId (bài học đã thuộc khóa nào thì nằm yên đó)
-// Nên ta dùng OmitType để loại bỏ courseId (cần cài thêm nếu chưa có, hoặc đơn giản là tạo class mới)
-// Để đơn giản cho bạn, ta cứ kế thừa PartialType, logic chặn sẽ nằm ở Service.
-export class UpdateLessonDto extends PartialType(CreateLessonDto) {}
+// UpdateLessonDto for partial updates
+export class UpdateLessonDto {
+  @IsOptional()
+  @IsString({ message: 'Tiêu đề phải là chuỗi ký tự' })
+  title?: string;
+
+  @IsOptional()
+  @IsString({ message: 'Nội dung phải là chuỗi ký tự' })
+  content?: string;
+
+  @IsOptional()
+  @IsUrl({}, { message: 'URL video không hợp lệ' })
+  videoUrl?: string;
+
+  @IsOptional()
+  @IsUrl({}, { message: 'URL audio không hợp lệ' })
+  audioUrl?: string;
+
+  @IsOptional()
+  @IsUrl({}, { message: 'URL PDF không hợp lệ' })
+  pdfUrl?: string;
+
+  @IsOptional()
+  @IsNumber({}, { message: 'Thứ tự phải là số' })
+  @Min(0, { message: 'Thứ tự không được âm' })
+  orderIndex?: number;
+}

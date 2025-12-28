@@ -86,7 +86,7 @@ function ResetPasswordForm() {
 
   if (success) {
     return (
-      <div className="w-full max-w-[480px] flex flex-col items-center bg-white dark:bg-card-dark p-8 rounded-2xl shadow-lg border border-green-200 dark:border-green-800">
+      <div className="relative overflow-hidden bg-gradient-to-br from-blue-300 via-white to-blue-100 dark:from-gray-900 dark:to-brand-blue min-h-screen flex flex-col text-[#181112] dark:text-white">
         <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
           <CheckCircle className="h-12 w-12 text-green-600 dark:text-green-400" />
         </div>
@@ -110,10 +110,10 @@ function ResetPasswordForm() {
             lock_reset
           </span>
         </div>
-        <h1 className="text-brand-dark dark:text-white text-2xl font-bold leading-tight mb-2">
+        <h1 className="text-brand-darkest dark:text-white tracking-tight text-[32px] font-bold leading-tight text-center pb-3">
           Đặt lại mật khẩu
         </h1>
-        <p className="text-gray-500 dark:text-gray-300 text-sm font-normal leading-relaxed max-w-xs mx-auto">
+        <p className="text-brand-dark dark:text-brand-light/80 text-base font-normal leading-relaxed text-center pb-8 max-w-[90%] mx-auto">
           Vui lòng nhập mật khẩu mới cho tài khoản của bạn.
         </p>
       </div>
@@ -261,27 +261,29 @@ function ResetPasswordForm() {
 
 export default function ResetPasswordPage() {
   return (
-    <div className="min-h-screen flex flex-col bg-background-light dark:bg-background-dark font-display">
+    <div className="relative overflow-hidden bg-gradient-to-br from-blue-300 via-white to-blue-100 dark:from-gray-900 dark:to-brand-blue min-h-screen flex flex-col text-[#181112] dark:text-white">
       {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b border-gray-200 dark:border-brand-blue/30 bg-white/80 dark:bg-brand-dark/80 backdrop-blur-md">
-        <div className="px-4 md:px-10 h-16 flex items-center justify-between max-w-7xl mx-auto">
-          <div className="flex items-center gap-3">
-            <Link href="/" className="flex items-center gap-2 group">
-              <div className="size-8 rounded-lg bg-gradient-to-br from-brand-teal to-brand-blue flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
-                <span className="material-symbols-outlined text-white text-[20px]">
-                  school
-                </span>
-              </div>
-              <h2 className="text-brand-dark dark:text-white text-xl font-bold tracking-tight">
-                TiengAnh123
-              </h2>
-            </Link>
+      <header className="flex items-center justify-between px-4 md:px-10 py-3 border-b border-gray-200 dark:border-brand-blue bg-white dark:bg-brand-darkest">
+        <div className="flex items-center gap-4">
+          <div className="size-10 text-brand-dark flex items-center justify-center rounded-lg bg-brand-light dark:bg-brand-dark dark:text-brand-light">
+            <span className="material-symbols-outlined text-3xl">school</span>
           </div>
+          <h2 className="text-brand-darkest dark:text-white text-xl font-bold leading-tight tracking-[-0.015em]">
+            TiengAnh123
+          </h2>
+        </div>
+        <div className="hidden md:flex gap-2">
+          <Link
+            href="/register"
+            className="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-brand-medium text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-brand-dark transition-colors shadow-sm"
+          >
+            <span className="truncate">Đăng ký</span>
+          </Link>
           <Link
             href="/login"
-            className="text-sm font-medium text-brand-teal hover:text-brand-light transition-colors"
+            className="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-brand-light/50 dark:bg-brand-dark text-brand-darkest dark:text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-brand-light transition-colors"
           >
-            Đăng nhập
+            <span className="truncate">Đăng nhập</span>
           </Link>
         </div>
       </header>

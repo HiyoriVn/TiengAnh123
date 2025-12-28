@@ -32,7 +32,7 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-background-dark font-display">
+    <div className="relative overflow-hidden bg-gradient-to-br from-blue-300 via-white to-blue-100 dark:from-gray-900 dark:to-brand-blue min-h-screen flex flex-col text-[#181112] dark:text-white">
       {/* Header */}
       <header className="flex items-center justify-between px-4 md:px-10 py-3 border-b border-gray-200 dark:border-brand-blue bg-white dark:bg-brand-darkest">
         <div className="flex items-center gap-4">
@@ -62,8 +62,8 @@ export default function ForgotPasswordPage() {
       {/* Main Content */}
       <main className="flex-1 flex flex-col items-center justify-center px-4 py-10 md:py-20">
         <div className="w-full max-w-[480px] flex flex-col items-center bg-white dark:bg-card-dark p-8 rounded-2xl shadow-lg border border-brand-medium/20 dark:border-brand-dark">
-          <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-brand-light dark:bg-brand-dark/50">
-            <span className="material-symbols-outlined text-5xl text-brand-dark dark:text-brand-light">
+          <div className="size-14 bg-brand-light/20 rounded-full flex items-center justify-center mx-auto mb-4 text-brand-teal dark:text-brand-light">
+            <span className="material-symbols-outlined text-[28px]">
               lock_reset
             </span>
           </div>
@@ -134,13 +134,6 @@ export default function ForgotPasswordPage() {
           </div>
         </div>
       </main>
-
-      {/* Footer */}
-      <footer className="w-full py-6 text-center border-t border-brand-light/50 dark:border-brand-dark bg-white dark:bg-brand-darkest">
-        <p className="text-brand-dark/70 dark:text-brand-medium text-sm">
-          © 2025 TiengAnh123. All rights reserved.
-        </p>
-      </footer>
     </div>
   );
 }

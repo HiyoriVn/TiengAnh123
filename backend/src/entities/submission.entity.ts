@@ -6,11 +6,15 @@ import {
   ManyToOne,
   JoinColumn,
   UpdateDateColumn,
+  Index,
 } from 'typeorm';
 import { User } from './user.entity';
 import { Assessment } from './assessment.entity';
 
 @Entity('submissions')
+@Index(['student'])
+@Index(['assessment'])
+@Index(['status'])
 export class Submission {
   @PrimaryGeneratedColumn('uuid')
   id: string;

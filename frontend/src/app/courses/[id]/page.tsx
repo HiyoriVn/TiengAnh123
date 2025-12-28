@@ -2,19 +2,28 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useAuth } from "@/hooks";
-import { getCourseById, checkEnrollment, enrollCourse } from "@/lib/api";
-import type { CourseDetail } from "@/lib/types";
-import { formatCurrency } from "@/lib/utils";
-import { User, BookOpen, PlayCircle, CheckCircle } from "lucide-react";
-import { Spinner } from "@/components/ui";
+import api from "@/utils/api";
+
+interface Course {
+  id: string;
+  title: string;
+  description: string;
+  price: number;
+  coverUrl?: string;
+  creator: {
+    fullName: string;
+  };
+  lessons: Array<{
+    id: string;
+    title: string;
+  }>;
+}
 
 export default function CourseDetailPage() {
   const { id } = useParams();
   const router = useRouter();
-  const { isAuthenticated } = useAuth();
 
-  const [course, setCourse] = useState<CourseDetail | null>(null);
+  const [course, setCourse] = useState<Course | null>(null);
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [loading, setLoading] = useState(true);
   const [enrolling, setEnrolling] = useState(false);
@@ -25,75 +34,47 @@ export default function CourseDetailPage() {
       if (!id || typeof id !== "string") return;
 
       try {
-        // Fetch course details
-        const { data: courseData, error: courseError } = await getCourseById(
-          id
-        );
+        const response = await api.get(`/courses/${id}`);
+        setCourse(response.data);
 
-        if (courseError || !courseData) {
-          setError("Không thể tải thông tin khóa học");
-          return;
-        }
-
-        setCourse(courseData);
-
-        // Check enrollment if user is logged in
-        if (isAuthenticated) {
-          const { data: enrollData } = await checkEnrollment(id);
-          if (enrollData) {
-            setIsEnrolled(enrollData.enrolled);
-          }
+        try {
+          const enrollRes = await api.get(`/enrollments/check/${id}`);
+          setIsEnrolled(enrollRes.data.enrolled);
+        } catch {
+          // Not logged in
         }
       } catch {
-        setError("Đã có lỗi xảy ra khi tải khóa học");
+        setError("Không thể tải khóa học");
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [id, isAuthenticated]);
+  }, [id]);
 
   const handleEnroll = async () => {
-    if (!isAuthenticated) {
-      router.push("/login");
-      return;
-    }
-
     if (!id || typeof id !== "string") return;
 
     setEnrolling(true);
     setError("");
 
     try {
-      const { error: enrollError } = await enrollCourse(id);
-
-      if (enrollError) {
-        setError(enrollError.message || "Đăng ký thất bại");
-        return;
-      }
-
+      await api.post("/enrollments", { courseId: id });
       setIsEnrolled(true);
-    } catch {
-      setError("Đã có lỗi xảy ra");
+      alert("Đăng ký thành công!");
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } } };
+      setError(error.response?.data?.message || "Đăng ký thất bại");
     } finally {
       setEnrolling(false);
-    }
-  };
-
-  const handleLessonClick = () => {
-    if (isEnrolled && course) {
-      router.push(`/learn/${course.id}`);
-    } else {
-      // User hasn't enrolled yet
-      // Could show a modal or toast here instead of alert
     }
   };
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Spinner size="lg" />
+        <p>Đang tải...</p>
       </div>
     );
   }
@@ -124,18 +105,15 @@ export default function CourseDetailPage() {
             <h1 className="text-4xl font-bold mb-4">{course.title}</h1>
             <p className="text-lg text-blue-100 mb-6">{course.description}</p>
             <div className="flex items-center gap-6 text-sm">
-              <span className="flex items-center gap-2">
-                <User size={16} /> GV: {course.creator?.fullName}
-              </span>
-              <span className="flex items-center gap-2">
-                <BookOpen size={16} /> {course.lessons?.length || 0} bài học
-              </span>
+              <span>👤 GV: {course.creator?.fullName}</span>
+              <span>📚 {course.lessons?.length || 0} bài học</span>
             </div>
           </div>
 
           <div className="w-full md:w-80 bg-white text-gray-800 p-6 rounded-lg shadow-lg">
             <div className="aspect-video bg-gray-200 mb-4 rounded flex items-center justify-center">
               {course.coverUrl ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
                 <img
                   src={course.coverUrl}
                   className="w-full h-full object-cover rounded"
@@ -147,7 +125,7 @@ export default function CourseDetailPage() {
             </div>
 
             <div className="text-3xl font-bold text-blue-600 mb-4 text-center">
-              {formatCurrency(course.price)}
+              {course.price.toLocaleString("vi-VN")} VNĐ
             </div>
 
             {error && (
@@ -159,19 +137,20 @@ export default function CourseDetailPage() {
             {isEnrolled ? (
               <button
                 disabled
-                className="w-full bg-green-600 text-white py-3 rounded font-bold flex justify-center items-center gap-2"
+                className="w-full bg-green-600 text-white py-3 rounded font-bold"
               >
-                <CheckCircle size={20} /> Đã sở hữu
+                ✓ Đã sở hữu
               </button>
             ) : (
               <button
                 onClick={handleEnroll}
                 disabled={enrolling}
-                className="w-full bg-red-600 text-white py-3 rounded font-bold hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-red-600 text-white py-3 rounded font-bold hover:bg-red-700 disabled:opacity-50"
               >
                 {enrolling ? "Đang xử lý..." : "Đăng ký học ngay"}
               </button>
             )}
+
             <p className="text-xs text-center text-gray-500 mt-3">
               Truy cập trọn đời • Học mọi lúc mọi nơi
             </p>
@@ -191,31 +170,28 @@ export default function CourseDetailPage() {
                     className="flex items-center justify-between p-3 border-b hover:bg-gray-50"
                   >
                     <div className="flex items-center gap-3">
-                      <PlayCircle className="text-gray-400" size={20} />
+                      <span className="text-gray-400">▶</span>
                       <span className="font-medium text-gray-700">
                         Bài {index + 1}: {lesson.title}
                       </span>
                     </div>
-                    {/* --- ĐÂY LÀ CHỖ SỬA ONCLICK --- */}
-                    <span
-                      className="text-sm text-blue-600 cursor-pointer hover:underline"
-                      onClick={handleLessonClick}
-                    >
-                      {isEnrolled ? "Vào học" : "Xem trước"}
-                    </span>
-                    {/* ----------------------------- */}
+                    {isEnrolled && (
+                      <button
+                        onClick={() => router.push(`/learn/${course.id}`)}
+                        className="text-sm text-blue-600 hover:underline"
+                      >
+                        Vào học
+                      </button>
+                    )}
                   </div>
                 ))
               ) : (
-                <p className="text-gray-500 italic">
-                  Chưa có bài học nào được cập nhật.
-                </p>
+                <p className="text-gray-500 italic">Chưa có bài học nào.</p>
               )}
             </div>
           </div>
         </div>
 
-        {/* Phần thông tin giảng viên (giữ nguyên) */}
         <div>
           <div className="bg-white p-6 rounded-lg shadow mb-6">
             <h3 className="font-bold text-lg mb-4">Thông tin giảng viên</h3>

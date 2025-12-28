@@ -32,6 +32,13 @@ export class CoursesController {
     return this.coursesService.findAll();
   }
 
+  // API: Xem khóa học của giảng viên hiện tại (Yêu cầu đăng nhập)
+  @UseGuards(AuthGuard('jwt'))
+  @Get('/my-courses')
+  findMyCourses(@Request() req) {
+    return this.coursesService.findByCreator(req.user.id);
+  }
+
   // API: Xem chi tiết (Ai cũng xem được)
   @Get(':id')
   findOne(@Param('id') id: string) {

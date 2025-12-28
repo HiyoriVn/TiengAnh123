@@ -7,9 +7,13 @@ import {
   UseGuards,
   Request,
   Patch,
+  Put,
+  ValidationPipe,
+  UsePipes,
 } from '@nestjs/common';
 import { LessonsService } from './lessons.service';
 import { CreateLessonDto } from './create-lesson.dto';
+import { UpdateLessonDto } from './update-lesson.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
@@ -37,12 +41,33 @@ export class LessonsController {
   findOne(@Param('id') id: string) {
     return this.lessonsService.findOne(id);
   }
+
+  // API: Update lesson (Lecturer hoặc Admin)
+  @UseGuards(AuthGuard('jwt'))
+  @Put(':id')
+  @UsePipes(ValidationPipe)
+  update(
+    @Param('id') id: string,
+    @Body() updateLessonDto: UpdateLessonDto,
+    @Request() req,
+  ) {
+    return this.lessonsService.update(id, updateLessonDto, req.user);
+  }
+
   // API: Lấy danh sách bài chờ duyệt (Chỉ Admin)
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('ADMIN')
   @Get('pending/all')
   findPending() {
     return this.lessonsService.findPendingLessons();
+  }
+
+  // API: Admin lấy tất cả lessons
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN')
+  @Get('admin/all')
+  findAllForAdmin() {
+    return this.lessonsService.findAllForAdmin();
   }
 
   // API: Duyệt bài (Chỉ Admin)
@@ -54,5 +79,19 @@ export class LessonsController {
     @Body('status') status: 'APPROVED' | 'REJECTED',
   ) {
     return this.lessonsService.approveLesson(id, status);
+  }
+
+  // 🎮 API: Complete Lesson (Student)
+  @UseGuards(AuthGuard('jwt'))
+  @Post(':id/complete')
+  completeLesson(@Param('id') id: string, @Request() req) {
+    return this.lessonsService.completeLesson(id, req.user.id);
+  }
+
+  // API: Get user progress for lesson
+  @UseGuards(AuthGuard('jwt'))
+  @Get(':id/progress')
+  getUserProgress(@Param('id') id: string, @Request() req) {
+    return this.lessonsService.getUserProgress(id, req.user.id);
   }
 }

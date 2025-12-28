@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Document } from '../entities/document.entity';
@@ -35,5 +39,41 @@ export class DocumentsService {
     });
 
     return this.documentRepository.save(newDoc);
+  }
+
+  // Lấy tất cả documents của một user (giảng viên)
+  async findByUser(userId: string) {
+    return this.documentRepository.find({
+      where: { uploadedBy: { id: userId } },
+      relations: ['lesson', 'lesson.course'],
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  // Lấy documents của một lesson
+  async findByLesson(lessonId: string) {
+    return this.documentRepository.find({
+      where: { lesson: { id: lessonId } },
+      relations: ['uploadedBy'],
+      order: { createdAt: 'ASC' },
+    });
+  }
+
+  // Xóa document (chỉ người upload hoặc admin mới được xóa)
+  async deleteDocument(id: string, user: User) {
+    const doc = await this.documentRepository.findOne({
+      where: { id },
+      relations: ['uploadedBy'],
+    });
+
+    if (!doc) throw new NotFoundException('Tài liệu không tồn tại');
+
+    // Kiểm tra quyền: chỉ người tạo hoặc admin mới xóa được
+    if (doc.uploadedBy.id !== user.id && user.role !== 'ADMIN') {
+      throw new ForbiddenException('Bạn không có quyền xóa tài liệu này');
+    }
+
+    await this.documentRepository.softDelete(id);
+    return { message: 'Xóa tài liệu thành công' };
   }
 }

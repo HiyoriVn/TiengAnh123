@@ -21,6 +21,18 @@ import { Submission } from './entities/submission.entity';
 import { DocumentsModule } from './documents/documents.module';
 import { AssessmentsModule } from './assessments/assessments.module';
 import { SubmissionsModule } from './submissions/submissions.module';
+import { PlacementTestModule } from './placement-test/placement-test.module';
+import { PlacementTest } from './entities/placement-test.entity';
+import { PlacementQuestion } from './entities/placement-question.entity';
+import { UserPlacementResult } from './entities/user-placement-result.entity';
+import { Exercise } from './entities/exercise.entity';
+import { ExerciseQuestion } from './entities/exercise-question.entity';
+import { ExerciseResult } from './entities/exercise-result.entity';
+import { ExercisesModule } from './exercises/exercises.module';
+import { Achievement } from './entities/achievement.entity';
+import { UserAchievement } from './entities/user-achievement.entity';
+import { UserLessonProgress } from './entities/user-lesson-progress.entity';
+import { GamificationModule } from './gamification/gamification.module';
 
 @Module({
   imports: [
@@ -47,6 +59,15 @@ import { SubmissionsModule } from './submissions/submissions.module';
         UserResult,
         Document,
         Submission,
+        PlacementTest,
+        PlacementQuestion,
+        UserPlacementResult,
+        Exercise,
+        ExerciseQuestion,
+        ExerciseResult,
+        Achievement,
+        UserAchievement,
+        UserLessonProgress,
       ],
       synchronize: true, // Tự động tạo bảng (chỉ dùng cho Dev)
     }),
@@ -58,6 +79,9 @@ import { SubmissionsModule } from './submissions/submissions.module';
     DocumentsModule,
     AssessmentsModule,
     SubmissionsModule,
+    PlacementTestModule,
+    ExercisesModule,
+    GamificationModule,
   ],
   controllers: [AppController],
   providers: [AppService],

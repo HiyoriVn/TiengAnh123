@@ -2,17 +2,23 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Submission } from '../entities/submission.entity';
 import { User } from '../entities/user.entity';
+import { GamificationService } from '../gamification/gamification.service';
+import { AchievementType } from '../entities/achievement.entity';
 
 @Injectable()
 export class SubmissionsService {
+  private readonly logger = new Logger(SubmissionsService.name);
+
   constructor(
     @InjectRepository(Submission)
     private submissionRepository: Repository<Submission>,
+    private gamificationService: GamificationService,
   ) {}
 
   // 1. HỌC VIÊN: Nộp bài
@@ -46,6 +52,7 @@ export class SubmissionsService {
   ) {
     const submission = await this.submissionRepository.findOne({
       where: { id: submissionId },
+      relations: ['student'],
     });
     if (!submission) throw new NotFoundException('Bài nộp không tồn tại');
 
@@ -54,6 +61,41 @@ export class SubmissionsService {
     submission.status = 'GRADED'; // Đổi trạng thái đã chấm
     submission.gradedBy = lecturer; // Lưu người chấm
 
-    return this.submissionRepository.save(submission);
+    const savedSubmission = await this.submissionRepository.save(submission);
+
+    // 🎮 Gamification: Award points based on score
+    try {
+      if (score >= 70) {
+        // Pass score
+        const points = Math.round(score / 5); // 70-100 -> 14-20 points
+        await this.gamificationService.awardPoints(
+          submission.student.id,
+          points,
+          'Hoàn thành bài nộp',
+        );
+
+        // Bonus for perfect score
+        if (score === 100) {
+          await this.gamificationService.awardPoints(
+            submission.student.id,
+            10,
+            'Điểm tuyệt đối',
+          );
+          await this.gamificationService.unlockAchievement(
+            submission.student.id,
+            AchievementType.PERFECT_EXERCISE,
+          );
+        }
+
+        await this.gamificationService.updateStreak(submission.student.id);
+      }
+    } catch (error) {
+      this.logger.error(
+        `Error awarding points for submission ${submissionId}: ${error.message}`,
+        error.stack,
+      );
+    }
+
+    return savedSubmission;
   }
 }
