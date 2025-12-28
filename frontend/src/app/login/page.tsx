@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/utils/api";
+import { AxiosError } from "axios";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -28,16 +29,24 @@ export default function LoginPage() {
       localStorage.setItem("user_info", JSON.stringify(userInfo));
 
       window.dispatchEvent(new Event("auth-change"));
-      router.push("/");
+      // Kiểm tra role và chuyển sang Dashboard tương ứng
+      const role = userInfo.role;
+      if (role === "ADMIN") {
+        router.push("/admin/dashboard");
+      } else if (role === "TEACHER") {
+        router.push("/teacher/dashboard");
+      } else {
+        // Mặc định là STUDENT
+        router.push("/student/dashboard");
+      }
     } catch (err: unknown) {
       console.error(err);
-      const errorMessage =
-        err instanceof Error
-          ? err.message
-          : "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.";
-      setError(
-        errorMessage || "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin."
-      );
+      if (err instanceof AxiosError && err.response) {
+        const msg = (err.response.data as { message: string }).message;
+        setError(msg || "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.");
+      } else {
+        setError("Đã có lỗi xảy ra. Vui lòng thử lại.");
+      }
     } finally {
       setLoading(false);
     }

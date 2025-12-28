@@ -1,38 +1,54 @@
 import forms from "@tailwindcss/forms";
 
 /** @type {import('tailwindcss').Config} */
-module.exports = {
+const config = {
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
-  darkMode: "class", // Quan trọng để hiển thị đúng chế độ tối/sáng
+  darkMode: "class",
   theme: {
     extend: {
       colors: {
-        primary: "#0C5776",
-        "primary-dark": "#001C44",
-        "primary-light": "#2D99AE",
-        accent: "#F8DAD0",
+        // --- Bảng màu GỐC (Trang chủ & Auth) ---
+        primary: "#0C5776", // Xanh đậm vừa
+        "primary-dark": "#001C44", // Xanh tối
+        "primary-light": "#2D99AE", // Xanh cổ vịt
+        accent: "#F8DAD0", // Hồng phấn
         "accent-hover": "#f2c6b6",
-        highlight: "#BCFEFE",
-        "background-light": "#F4F7FA",
-        "background-dark": "#001C44",
-        "card-light": "#ffffff",
-        "card-dark": "#0C5776",
+        highlight: "#BCFEFE", // Xanh băng
         "text-main": "#001C44",
         "text-muted": "#4B647A",
-        // --- Bảng màu CHUẨN cho Auth (Lấy từ trang Đăng ký) ---
-        "brand-red": "#ee2b3b", // Màu đỏ chủ đạo (Nút bấm)
-        "brand-blue": "#001C44", // Xanh đậm (Nền sidebar)
-        "brand-teal": "#0C5776", // Xanh cổ vịt (Họa tiết)
-        "brand-cyan": "#2D99AE", // Xanh sáng (Họa tiết)
-        "brand-peach": "#F8DAD0", // Màu kem/hồng phấn (Text phụ)
 
-        // --- Màu nền ---
-        "bg-auth-light": "#f8f6f6", // Nền sáng
-        "bg-auth-dark": "#221012", // Nền tối (pha đỏ nâu nhẹ theo mẫu đăng ký)
+        // --- Bảng màu AUTH (Login/Register) ---
+        "brand-red": "#ee2b3b",
+        "brand-blue": "#001C44",
+        "brand-teal": "#0C5776",
+        "brand-cyan": "#2D99AE",
+        "brand-peach": "#F8DAD0",
+        "bg-auth-light": "#f8f6f6",
+        "bg-auth-dark": "#221012",
+
+        // --- Bảng màu DASHBOARD (Hợp nhất từ 3 file HTML) ---
+        // 1. Màu nền tối (Navy / Background Dark / Brand Blue) -> #001C44
+        navy: "#001C44",
+        "background-dark": "#001C44",
+
+        // 2. Màu nền sáng (Background Light) -> #F4F7FA
+        "background-light": "#F4F7FA",
+
+        // 3. Màu Card/Khối (Primary / Surface Dark / Card Dark) -> #0C5776
+        "surface-dark": "#0C5776",
+        "card-dark": "#0C5776",
+
+        // 4. Màu điểm nhấn (Secondary / Teal / Highlight) -> #2D99AE
+        secondary: "#2D99AE",
+        teal: "#2D99AE",
+
+        // 5. Màu phụ trợ (Ice / Soft Blue) -> #BCFEFE
+        ice: "#BCFEFE",
+        "soft-blue": "#BCFEFE",
       },
       fontFamily: {
         display: ["Inter", "sans-serif"],
@@ -42,3 +58,4 @@ module.exports = {
   },
   plugins: [forms],
 };
+export default config;
