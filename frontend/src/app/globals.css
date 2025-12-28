@@ -1,3 +1,23 @@
+/* stylelint-disable at-rule-no-unknown */
+@import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.material-symbols-outlined {
+  font-family: "Material Symbols Outlined"; /* Quan trọng */
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px; /* Kích thước mặc định */
+  display: inline-block;
+  line-height: 1;
+  text-transform: none;
+  letter-spacing: normal;
+  word-wrap: normal;
+  white-space: nowrap;
+  direction: ltr;
+  /* Hỗ trợ hiển thị nét đẹp hơn trên các trình duyệt */
+  -webkit-font-smoothing: antialiased;
+  /* Hỗ trợ biến thể (đậm/nhạt, fill/outline) */
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+}

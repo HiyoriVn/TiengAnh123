@@ -1,7 +1,6 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import Header from "@/components/Header"; // Import Header
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -17,10 +16,15 @@ export default function RootLayout({
 }) {
   return (
     <html lang="vi">
-      <body className={inter.className}>
-        <Header /> {/* Gắn Header vào đây */}
-        {children}
-      </body>
+      <head>
+        {/* Dòng này giúp tắt báo lỗi font của Next.js */}
+        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+        <link
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+          rel="stylesheet"
+        />
+      </head>
+      <body className={inter.className}>{children}</body>
     </html>
   );
 }
