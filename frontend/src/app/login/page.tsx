@@ -1,17 +1,28 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import api from "@/utils/api";
-import { AxiosError } from "axios";
+import { useAuth } from "@/hooks";
+import { login } from "@/lib/api";
+import { getDashboardRoute } from "@/lib/utils";
+import AuthHeader from "@/components/navigation/AuthHeader";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { user, isAuthenticated, login: authLogin } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // Redirect nếu đã đăng nhập
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      const dashboardRoute = getDashboardRoute(user.role);
+      router.replace(dashboardRoute);
+    }
+  }, [isAuthenticated, user, router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,34 +30,29 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const res = await api.post("/auth/login", { email, password });
-      localStorage.setItem("access_token", res.data.access_token);
+      const { data, error: apiError } = await login({ email, password });
 
-      const userInfo = res.data.user || {
-        fullName: "Học viên",
-        role: "STUDENT",
-      };
-      localStorage.setItem("user_info", JSON.stringify(userInfo));
-
-      window.dispatchEvent(new Event("auth-change"));
-      // Kiểm tra role và chuyển sang Dashboard tương ứng
-      const role = userInfo.role;
-      if (role === "ADMIN") {
-        router.push("/admin/dashboard");
-      } else if (role === "TEACHER") {
-        router.push("/teacher/dashboard");
-      } else {
-        // Mặc định là STUDENT
-        router.push("/student/dashboard");
+      if (apiError) {
+        setError(
+          apiError.message ||
+            "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin."
+        );
+        return;
       }
-    } catch (err: unknown) {
-      console.error(err);
-      if (err instanceof AxiosError && err.response) {
-        const msg = (err.response.data as { message: string }).message;
-        setError(msg || "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.");
-      } else {
+
+      if (!data) {
         setError("Đã có lỗi xảy ra. Vui lòng thử lại.");
+        return;
       }
+
+      // Lưu auth state vào context
+      authLogin(data.access_token, data.user);
+
+      // Redirect theo role
+      const dashboardRoute = getDashboardRoute(data.user.role);
+      router.push(dashboardRoute);
+    } catch (err) {
+      setError("Đã có lỗi không xác định. Vui lòng thử lại.");
     } finally {
       setLoading(false);
     }
@@ -55,33 +61,7 @@ export default function LoginPage() {
   return (
     <div className="relative overflow-hidden bg-gradient-to-br from-blue-300 via-white to-blue-100 dark:from-gray-900 dark:to-brand-blue min-h-screen flex flex-col text-[#181112] dark:text-white">
       {/* --- HEADER --- */}
-      <header className="flex items-center justify-between border-b border-gray-200 dark:border-white/10 px-6 lg:px-10 py-4 bg-white dark:bg-bg-auth-dark sticky top-0 z-50">
-        <Link href="/" className="flex items-center gap-2 group">
-          <div className="size-8 bg-brand-blue rounded-lg flex items-center justify-center text-white">
-            <span className="material-symbols-outlined text-[20px]">
-              school
-            </span>
-          </div>
-          <span className="text-xl font-bold text-brand-blue dark:text-white tracking-tight group-hover:text-brand-blue/80 transition-colors">
-            TiengAnh123
-          </span>
-        </Link>
-
-        <div className="flex items-center gap-6">
-          <Link
-            href="/"
-            className="text-sm font-semibold text-gray-600 dark:text-gray-300 hover:text-brand-blue transition-colors"
-          >
-            Trang chủ
-          </Link>
-          <Link
-            href="/register"
-            className="hidden sm:flex items-center justify-center h-10 px-6 rounded-lg border border-brand-blue text-brand-blue dark:text-white dark:border-white text-sm font-bold hover:bg-brand-blue hover:text-white dark:hover:bg-white dark:hover:text-brand-blue transition-all"
-          >
-            Đăng ký
-          </Link>
-        </div>
-      </header>
+      <AuthHeader />
 
       {/* --- MAIN CONTENT --- */}
       <main className="flex-1 flex flex-col items-center justify-center p-4 lg:p-8">
@@ -134,12 +114,12 @@ export default function LoginPage() {
                   <span className="text-white text-sm font-semibold">
                     Mật khẩu
                   </span>
-                  <a
-                    href="#"
+                  <Link
+                    href="/forgot-password"
                     className="text-brand-peach hover:text-white text-sm font-semibold hover:underline"
                   >
                     Quên mật khẩu?
-                  </a>
+                  </Link>
                 </div>
                 <div className="relative">
                   <input

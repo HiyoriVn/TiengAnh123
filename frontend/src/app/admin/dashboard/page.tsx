@@ -1,100 +1,169 @@
 "use client";
 
-// Mock Data
-const users = [
-  {
-    id: 1,
-    name: "Lê Văn C",
-    email: "levan@gmail.com",
-    role: "STUDENT",
-    status: "Active",
-  },
-  {
-    id: 2,
-    name: "Ms. Thu Hà",
-    email: "thuha@tienganh123.com",
-    role: "TEACHER",
-    status: "Active",
-  },
-];
+import { useAuth } from "@/hooks";
+import DashboardLayout from "@/components/layouts/DashboardLayout";
+import {
+  TrendingUp,
+  TrendingDown,
+  Users,
+  BookOpen,
+  UserPlus,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+
+interface Stats {
+  totalUsers: number;
+  onlineStudents: number;
+  newRegistrations: number;
+  userTrend: number;
+  onlineTrend: number;
+  regTrend: number;
+}
 
 export default function AdminDashboard() {
-  return (
-    <div className="flex min-h-screen bg-background-dark font-display text-white">
-      {/* SIDEBAR */}
-      <aside className="w-64 bg-surface-dark border-r border-white/5 hidden md:flex flex-col">
-        <div className="p-6 flex items-center gap-2 border-b border-white/5">
-          <span className="material-symbols-outlined text-accent text-3xl">
-            admin_panel_settings
-          </span>
-          <span className="text-xl font-bold tracking-tight">AdminCP</span>
-        </div>
-        <nav className="flex-1 p-4 space-y-1">
-          <div className="flex items-center gap-3 px-4 py-3 bg-white/10 rounded-lg text-accent font-medium cursor-pointer">
-            <span className="material-symbols-outlined">dashboard</span> Tổng
-            quan
-          </div>
-          <div className="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-white/5 rounded-lg transition-colors cursor-pointer">
-            <span className="material-symbols-outlined">people</span> Người dùng
-          </div>
-        </nav>
-      </aside>
+  const { user } = useAuth();
+  const [stats] = useState<Stats>({
+    totalUsers: 12450,
+    onlineStudents: 856,
+    newRegistrations: 124,
+    userTrend: 12.5,
+    onlineTrend: 8.2,
+    regTrend: -3.1,
+  });
 
-      {/* MAIN CONTENT */}
-      <main className="flex-1 p-8 overflow-y-auto">
-        <header className="flex justify-between items-center mb-8">
-          <h1 className="text-2xl font-bold">Dashboard Tổng quan</h1>
-          <div className="flex items-center gap-4">
-            <div className="text-right hidden sm:block">
-              <p className="font-bold text-sm">Admin</p>
-              <p className="text-xs text-gray-400">System Manager</p>
-            </div>
-            <div className="w-10 h-10 rounded-full bg-accent text-background-dark flex items-center justify-center font-bold">
-              AD
-            </div>
-          </div>
-        </header>
+  useEffect(() => {
+    // TODO: Fetch real data from API when integrated with backend
+  }, []);
+
+  return (
+    <DashboardLayout>
+      <div className="max-w-7xl mx-auto flex flex-col gap-8 pb-10">
+        {/* Welcome Section */}
+        <div className="flex flex-col gap-1">
+          <h2 className="text-white tracking-tight text-2xl md:text-3xl font-bold leading-tight">
+            Chào mừng trở lại, {user?.fullName || "Admin"}! 👋
+          </h2>
+          <p className="text-brand-teal-light/70 text-sm">
+            Đây là tổng quan tình hình hoạt động của hệ thống TiengAnh123 hôm
+            nay.
+          </p>
+        </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-surface-dark p-6 rounded-xl border border-white/5">
-            <h3 className="text-3xl font-bold text-white">5,230</h3>
-            <p className="text-gray-400 text-sm">Tổng người dùng</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Total Users */}
+          <div className="flex flex-col gap-2 rounded-xl p-5 bg-brand-blue-med border border-brand-teal/20 shadow-xl relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+              <Users className="text-brand-teal-light w-24 h-24" />
+            </div>
+            <div className="flex items-center gap-2 mb-2">
+              <div className="p-2 bg-brand-blue-dark rounded-lg text-brand-peach">
+                <Users className="w-5 h-5" />
+              </div>
+              <p className="text-brand-teal-light/80 text-sm font-medium">
+                Tổng người dùng
+              </p>
+            </div>
+            <div className="flex items-end gap-3">
+              <p className="text-white text-3xl font-bold leading-none">
+                {stats.totalUsers.toLocaleString()}
+              </p>
+              <span
+                className={`flex items-center text-xs font-bold px-1.5 py-0.5 rounded mb-1 ${
+                  stats.userTrend >= 0
+                    ? "text-[#0bda92] bg-[#0bda92]/10"
+                    : "text-brand-peach bg-brand-peach/10"
+                }`}
+              >
+                {stats.userTrend >= 0 ? (
+                  <TrendingUp className="w-3.5 h-3.5 mr-0.5" />
+                ) : (
+                  <TrendingDown className="w-3.5 h-3.5 mr-0.5" />
+                )}
+                {Math.abs(stats.userTrend)}%
+              </span>
+            </div>
           </div>
-          <div className="bg-surface-dark p-6 rounded-xl border border-white/5">
-            <h3 className="text-3xl font-bold text-white">120</h3>
-            <p className="text-gray-400 text-sm">Khóa học</p>
+
+          {/* Online Students */}
+          <div className="flex flex-col gap-2 rounded-xl p-5 bg-brand-blue-med border border-brand-teal/20 shadow-xl relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+              <BookOpen className="text-brand-teal-light w-24 h-24" />
+            </div>
+            <div className="flex items-center gap-2 mb-2">
+              <div className="p-2 bg-brand-blue-dark rounded-lg text-brand-peach">
+                <BookOpen className="w-5 h-5" />
+              </div>
+              <p className="text-brand-teal-light/80 text-sm font-medium">
+                Học viên Online
+              </p>
+            </div>
+            <div className="flex items-end gap-3">
+              <p className="text-white text-3xl font-bold leading-none">
+                {stats.onlineStudents.toLocaleString()}
+              </p>
+              <span
+                className={`flex items-center text-xs font-bold px-1.5 py-0.5 rounded mb-1 ${
+                  stats.onlineTrend >= 0
+                    ? "text-[#0bda92] bg-[#0bda92]/10"
+                    : "text-brand-peach bg-brand-peach/10"
+                }`}
+              >
+                {stats.onlineTrend >= 0 ? (
+                  <TrendingUp className="w-3.5 h-3.5 mr-0.5" />
+                ) : (
+                  <TrendingDown className="w-3.5 h-3.5 mr-0.5" />
+                )}
+                {Math.abs(stats.onlineTrend)}%
+              </span>
+            </div>
+          </div>
+
+          {/* New Registrations */}
+          <div className="flex flex-col gap-2 rounded-xl p-5 bg-brand-blue-med border border-brand-teal/20 shadow-xl relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+              <UserPlus className="text-brand-teal-light w-24 h-24" />
+            </div>
+            <div className="flex items-center gap-2 mb-2">
+              <div className="p-2 bg-brand-blue-dark rounded-lg text-brand-peach">
+                <UserPlus className="w-5 h-5" />
+              </div>
+              <p className="text-brand-teal-light/80 text-sm font-medium">
+                Đăng ký mới
+              </p>
+            </div>
+            <div className="flex items-end gap-3">
+              <p className="text-white text-3xl font-bold leading-none">
+                {stats.newRegistrations.toLocaleString()}
+              </p>
+              <span
+                className={`flex items-center text-xs font-bold px-1.5 py-0.5 rounded mb-1 ${
+                  stats.regTrend >= 0
+                    ? "text-[#0bda92] bg-[#0bda92]/10"
+                    : "text-brand-peach bg-brand-peach/10"
+                }`}
+              >
+                {stats.regTrend >= 0 ? (
+                  <TrendingUp className="w-3.5 h-3.5 mr-0.5" />
+                ) : (
+                  <TrendingDown className="w-3.5 h-3.5 mr-0.5" />
+                )}
+                {Math.abs(stats.regTrend)}%
+              </span>
+            </div>
           </div>
         </div>
 
-        {/* Table */}
-        <div className="bg-surface-dark rounded-xl border border-white/5 overflow-hidden">
-          <div className="p-6 border-b border-white/5">
-            <h3 className="font-bold">Người dùng mới</h3>
+        {/* Recent Activity Placeholder */}
+        <div className="flex flex-col gap-4">
+          <h3 className="text-lg font-bold text-white">Hoạt động gần đây</h3>
+          <div className="rounded-xl bg-brand-blue-med border border-brand-teal/20 p-8 text-center">
+            <p className="text-gray-400">
+              Dữ liệu hoạt động sẽ được hiển thị tại đây
+            </p>
           </div>
-          <table className="w-full text-left text-sm text-gray-400">
-            <thead className="bg-white/5 text-gray-200 uppercase text-xs">
-              <tr>
-                <th className="px-6 py-3">Tên</th>
-                <th className="px-6 py-3">Vai trò</th>
-                <th className="px-6 py-3">Trạng thái</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((user) => (
-                <tr
-                  key={user.id}
-                  className="border-b border-white/5 hover:bg-white/5"
-                >
-                  <td className="px-6 py-4 text-white">{user.name}</td>
-                  <td className="px-6 py-4">{user.role}</td>
-                  <td className="px-6 py-4 text-green-400">{user.status}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
         </div>
-      </main>
-    </div>
+      </div>
+    </DashboardLayout>
   );
 }

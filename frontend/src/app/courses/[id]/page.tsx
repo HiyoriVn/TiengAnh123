@@ -2,110 +2,119 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import api from "@/utils/api";
+import { useAuth } from "@/hooks";
+import { getCourseById, checkEnrollment, enrollCourse } from "@/lib/api";
+import type { CourseDetail } from "@/lib/types";
+import { formatCurrency } from "@/lib/utils";
 import { User, BookOpen, PlayCircle, CheckCircle } from "lucide-react";
+import { Spinner } from "@/components/ui";
 
-// 1. ĐỊNH NGHĨA TYPE (Không dùng any)
-interface Lesson {
-  id: string;
-  title: string;
-  duration?: string;
-}
-
-interface Course {
-  id: string;
-  title: string;
-  description: string;
-  price: number;
-  coverUrl?: string;
-  creator: {
-    fullName: string;
-  };
-  lessons: Lesson[];
-}
-
-interface UserInfo {
-  id: string;
-  username: string;
-  fullName: string;
-  role: string;
-}
-
-export default function CourseDetail() {
+export default function CourseDetailPage() {
   const { id } = useParams();
-  const router = useRouter(); // Dùng để chuyển trang
+  const router = useRouter();
+  const { isAuthenticated } = useAuth();
 
-  const [course, setCourse] = useState<Course | null>(null);
+  const [course, setCourse] = useState<CourseDetail | null>(null);
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<UserInfo | null>(null);
+  const [enrolling, setEnrolling] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    const userInfoStr =
-      typeof window !== "undefined" ? localStorage.getItem("user_info") : null;
-    let currentUser: UserInfo | null = null;
-
-    if (userInfoStr) {
-      currentUser = JSON.parse(userInfoStr);
-      setUser(currentUser);
-    }
-
     const fetchData = async () => {
-      try {
-        const courseRes = await api.get(`/courses/${id}`);
-        setCourse(courseRes.data);
+      if (!id || typeof id !== "string") return;
 
-        if (currentUser) {
-          try {
-            const checkRes = await api.get(`/enrollments/check/${id}`);
-            setIsEnrolled(checkRes.data.enrolled);
-          } catch (e) {
-            console.log("Chưa đăng ký hoặc lỗi check");
+      try {
+        // Fetch course details
+        const { data: courseData, error: courseError } = await getCourseById(
+          id
+        );
+
+        if (courseError || !courseData) {
+          setError("Không thể tải thông tin khóa học");
+          return;
+        }
+
+        setCourse(courseData);
+
+        // Check enrollment if user is logged in
+        if (isAuthenticated) {
+          const { data: enrollData } = await checkEnrollment(id);
+          if (enrollData) {
+            setIsEnrolled(enrollData.enrolled);
           }
         }
-      } catch (err) {
-        console.error("Lỗi tải khóa học", err);
+      } catch {
+        setError("Đã có lỗi xảy ra khi tải khóa học");
       } finally {
         setLoading(false);
       }
     };
 
-    if (id) fetchData();
-  }, [id]);
+    fetchData();
+  }, [id, isAuthenticated]);
 
   const handleEnroll = async () => {
-    if (!user) {
-      alert("Vui lòng đăng nhập để đăng ký khóa học!");
+    if (!isAuthenticated) {
       router.push("/login");
       return;
     }
 
-    if (!confirm("Bạn có chắc muốn đăng ký khóa học này?")) return;
+    if (!id || typeof id !== "string") return;
+
+    setEnrolling(true);
+    setError("");
 
     try {
-      await api.post("/enrollments", { courseId: id });
-      alert("Đăng ký thành công!");
+      const { error: enrollError } = await enrollCourse(id);
+
+      if (enrollError) {
+        setError(enrollError.message || "Đăng ký thất bại");
+        return;
+      }
+
       setIsEnrolled(true);
-    } catch (err) {
-      alert("Đăng ký thất bại. Có thể bạn đã đăng ký rồi.");
+    } catch {
+      setError("Đã có lỗi xảy ra");
+    } finally {
+      setEnrolling(false);
     }
   };
 
-  // Hàm xử lý khi bấm vào bài học
   const handleLessonClick = () => {
     if (isEnrolled && course) {
-      // Nếu đã đăng ký -> Chuyển sang trang học
       router.push(`/learn/${course.id}`);
     } else {
-      // Nếu chưa -> Thông báo
-      alert("Vui lòng đăng ký khóa học để xem nội dung này!");
+      // User hasn't enrolled yet
+      // Could show a modal or toast here instead of alert
     }
   };
 
-  if (loading)
-    return <div className="p-10 text-center">Đang tải dữ liệu...</div>;
-  if (!course)
-    return <div className="p-10 text-center">Không tìm thấy khóa học</div>;
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
+
+  if (error || !course) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 font-semibold mb-4">
+            {error || "Không tìm thấy khóa học"}
+          </p>
+          <button
+            onClick={() => router.back()}
+            className="text-blue-600 hover:underline"
+          >
+            Quay lại
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-gray-50 min-h-screen pb-10">
@@ -138,21 +147,29 @@ export default function CourseDetail() {
             </div>
 
             <div className="text-3xl font-bold text-blue-600 mb-4 text-center">
-              {course.price === 0
-                ? "Miễn phí"
-                : `${course.price.toLocaleString()} đ`}
+              {formatCurrency(course.price)}
             </div>
 
+            {error && (
+              <div className="mb-3 p-2 bg-red-50 text-red-600 text-sm rounded">
+                {error}
+              </div>
+            )}
+
             {isEnrolled ? (
-              <button className="w-full bg-green-600 text-white py-3 rounded font-bold hover:bg-green-700 flex justify-center items-center gap-2">
+              <button
+                disabled
+                className="w-full bg-green-600 text-white py-3 rounded font-bold flex justify-center items-center gap-2"
+              >
                 <CheckCircle size={20} /> Đã sở hữu
               </button>
             ) : (
               <button
                 onClick={handleEnroll}
-                className="w-full bg-red-600 text-white py-3 rounded font-bold hover:bg-red-700 transition"
+                disabled={enrolling}
+                className="w-full bg-red-600 text-white py-3 rounded font-bold hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Đăng ký học ngay
+                {enrolling ? "Đang xử lý..." : "Đăng ký học ngay"}
               </button>
             )}
             <p className="text-xs text-center text-gray-500 mt-3">

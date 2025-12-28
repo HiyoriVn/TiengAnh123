@@ -1,57 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { LogOut, Book, Settings, PenTool } from "lucide-react";
-
-// 1. Định nghĩa Interface (Không dùng any)
-interface UserInfo {
-  fullName: string;
-  role: string; // 'ADMIN' | 'LECTURER' | 'STUDENT'
-}
+import { LogOut, Book, Settings, PenTool, LayoutDashboard } from "lucide-react";
+import { useAuth } from "@/hooks";
+import { getDashboardRoute } from "@/lib/utils";
 
 export default function Header() {
   const router = useRouter();
-  const [user, setUser] = useState<UserInfo | null>(null);
-
-  useEffect(() => {
-    // 2. CHUYỂN HÀM checkUser VÀO TRONG USEEFFECT
-    const checkUser = () => {
-      const userInfo =
-        typeof window !== "undefined"
-          ? localStorage.getItem("user_info")
-          : null;
-      if (userInfo) {
-        try {
-          setUser(JSON.parse(userInfo));
-        } catch (e) {
-          console.error("Lỗi parse user info", e);
-          setUser(null);
-        }
-      } else {
-        setUser(null);
-      }
-    };
-
-    // Gọi lần đầu khi mount
-    checkUser();
-
-    // Lắng nghe sự kiện custom "auth-change"
-    window.addEventListener("auth-change", checkUser);
-
-    // Cleanup khi component unmount
-    return () => {
-      window.removeEventListener("auth-change", checkUser);
-    };
-  }, []);
+  const { user, isAuthenticated, logout: authLogout } = useAuth();
 
   const handleLogout = () => {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("user_info");
-    // Phát sự kiện để Header tự cập nhật lại
-    window.dispatchEvent(new Event("auth-change"));
-    setUser(null);
+    authLogout();
     router.push("/login");
   };
 
@@ -76,7 +36,7 @@ export default function Header() {
             Trang chủ
           </Link>
 
-          {user ? (
+          {isAuthenticated && user ? (
             <>
               {/* --- MENU RIÊNG THEO QUYỀN (ROLE) --- */}
 
@@ -117,6 +77,17 @@ export default function Header() {
                   </p>
                   <p className="text-xs text-gray-500">{user.role}</p>
                 </div>
+
+                {/* Dashboard Button */}
+                <Link
+                  href={getDashboardRoute(user.role)}
+                  className="p-2 text-gray-600 hover:text-blue-600 transition"
+                  title="Dashboard"
+                >
+                  <LayoutDashboard size={20} />
+                </Link>
+
+                {/* Logout Button */}
                 <button
                   onClick={handleLogout}
                   className="p-2 text-gray-400 hover:text-red-500 transition"

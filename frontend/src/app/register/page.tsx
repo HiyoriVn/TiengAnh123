@@ -1,12 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import api from "@/utils/api";
+import { useAuth } from "@/hooks";
+import { register } from "@/lib/api";
+import { getDashboardRoute } from "@/lib/utils";
+import AuthHeader from "@/components/navigation/AuthHeader";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { user, isAuthenticated } = useAuth();
   const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -14,6 +18,14 @@ export default function RegisterPage() {
     confirmPassword: "",
   });
   const [loading, setLoading] = useState(false);
+
+  // Redirect nếu đã đăng nhập
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      const dashboardRoute = getDashboardRoute(user.role);
+      router.replace(dashboardRoute);
+    }
+  }, [isAuthenticated, user, router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -27,16 +39,22 @@ export default function RegisterPage() {
     }
     setLoading(true);
     try {
-      await api.post("/auth/register", {
+      const { error } = await register({
         email: formData.email,
         password: formData.password,
         fullName: formData.username,
         username: formData.email.split("@")[0],
       });
+
+      if (error) {
+        alert(error.message || "Lỗi đăng ký (Email có thể đã tồn tại)");
+        return;
+      }
+
       alert("Đăng ký thành công!");
       router.push("/login");
-    } catch (err) {
-      console.error(err);
+    } catch (error) {
+      console.error(error);
       alert("Lỗi đăng ký (Email có thể đã tồn tại)");
     } finally {
       setLoading(false);
@@ -46,33 +64,7 @@ export default function RegisterPage() {
   return (
     <div className="bg-bg-auth-light dark:bg-bg-auth-dark font-display min-h-screen flex flex-col text-[#181112] dark:text-white">
       {/* --- HEADER --- */}
-      <header className="flex items-center justify-between border-b border-gray-200 dark:border-white/10 px-6 lg:px-10 py-4 bg-white dark:bg-bg-auth-dark sticky top-0 z-50">
-        <Link href="/" className="flex items-center gap-2 group">
-          <div className="size-8 bg-brand-blue rounded-lg flex items-center justify-center text-white">
-            <span className="material-symbols-outlined text-[20px]">
-              school
-            </span>
-          </div>
-          <span className="text-xl font-bold text-brand-blue dark:text-white tracking-tight group-hover:text-brand-blue/80 transition-colors">
-            TiengAnh123
-          </span>
-        </Link>
-
-        <div className="flex items-center gap-6">
-          <Link
-            href="/"
-            className="text-sm font-semibold text-gray-600 dark:text-gray-300 hover:text-brand-blue transition-colors"
-          >
-            Trang chủ
-          </Link>
-          <Link
-            href="/login"
-            className="hidden sm:flex items-center justify-center h-10 px-6 rounded-lg border border-brand-blue text-brand-blue dark:text-white dark:border-white text-sm font-bold hover:bg-brand-blue hover:text-white dark:hover:bg-white dark:hover:text-brand-blue transition-all"
-          >
-            Đăng nhập
-          </Link>
-        </div>
-      </header>
+      <AuthHeader />
 
       {/* --- MAIN CONTENT --- */}
       <div className="flex-1 flex w-full">

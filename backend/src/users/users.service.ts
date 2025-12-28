@@ -44,9 +44,37 @@ export class UsersService {
       throw new InternalServerErrorException();
     }
   }
+
   async findOneByUsername(username: string): Promise<User | null> {
     return this.usersRepository.findOne({ where: { username } });
   }
+
+  async findByEmailOrUsername(identifier: string): Promise<User | null> {
+    // Tìm theo email hoặc username
+    const user = await this.usersRepository.findOne({
+      where: [{ email: identifier }, { username: identifier }],
+    });
+    return user;
+  }
+
+  async findByEmail(email: string): Promise<User | null> {
+    return this.usersRepository.findOne({ where: { email } });
+  }
+
+  async findOne(id: string): Promise<User | null> {
+    return this.usersRepository.findOne({ where: { id } });
+  }
+
+  async findByResetToken(token: string): Promise<User | null> {
+    return this.usersRepository.findOne({
+      where: { resetPasswordToken: token },
+    });
+  }
+
+  async save(user: User): Promise<User> {
+    return this.usersRepository.save(user);
+  }
+
   // 1. Lấy danh sách tất cả user (Trừ password)
   async findAll(): Promise<User[]> {
     return this.usersRepository.find({

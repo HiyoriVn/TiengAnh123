@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { User } from './entities/user.entity';
@@ -23,6 +24,11 @@ import { SubmissionsModule } from './submissions/submissions.module';
 
 @Module({
   imports: [
+    // Load environment variables từ file .env
+    ConfigModule.forRoot({
+      isGlobal: true, // Cho phép sử dụng env vars trong toàn bộ app
+      envFilePath: '.env',
+    }),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: 'localhost',
