@@ -44,6 +44,10 @@ export class Lesson {
   @Column({ name: 'approval_status', default: 'PENDING' })
   approvalStatus: string;
 
+  // Trạng thái xuất bản (để filter cho học viên)
+  @Column({ name: 'is_published', default: false })
+  isPublished: boolean;
+
   // Quan hệ 1 bài học có nhiều tài liệu đính kèm
   @OneToMany(() => Document, (document) => document.lesson)
   documents: Document[];

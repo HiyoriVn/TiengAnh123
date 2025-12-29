@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import axios from "axios";
+import api from "@/utils/api";
 
 interface Question {
   id: string;
@@ -49,14 +49,8 @@ export default function StudentPlacementTestPage() {
 
   const fetchTest = async () => {
     try {
-      const token = localStorage.getItem("token");
-      const config = { headers: { Authorization: `Bearer ${token}` } };
-
       // Check eligibility first
-      const eligibleRes = await axios.get(
-        "http://localhost:3000/placement-test/check-eligibility",
-        config
-      );
+      const eligibleRes = await api.get("/placement-test/check-eligibility");
       if (!eligibleRes.data.canTake) {
         alert(
           eligibleRes.data.message || "Bạn đã hoàn thành bài kiểm tra này."
@@ -66,10 +60,7 @@ export default function StudentPlacementTestPage() {
       }
 
       // Fetch active test
-      const testRes = await axios.get(
-        "http://localhost:3000/placement-test/active",
-        config
-      );
+      const testRes = await api.get("/placement-test/active");
       setTest(testRes.data);
       setTimeLeft(testRes.data.duration * 60);
       startTimeRef.current = Date.now();
@@ -111,18 +102,13 @@ export default function StudentPlacementTestPage() {
     if (timerRef.current) clearInterval(timerRef.current);
 
     try {
-      const token = localStorage.getItem("token");
       const timeTaken = Math.floor((Date.now() - startTimeRef.current) / 1000);
 
-      await axios.post(
-        "http://localhost:3000/placement-test/submit",
-        {
-          testId: test.id,
-          answers,
-          timeTaken,
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.post("/placement-test/submit", {
+        testId: test.id,
+        answers,
+        timeTaken,
+      });
 
       router.push("/student/placement-test/result");
     } catch (error: unknown) {

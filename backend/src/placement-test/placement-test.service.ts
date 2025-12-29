@@ -15,6 +15,7 @@ import {
   QuestionType,
 } from '../entities/placement-question.entity';
 import { UserPlacementResult } from '../entities/user-placement-result.entity';
+import { User } from '../entities/user.entity';
 import { CourseLevel } from '../entities/course.entity';
 import { CreatePlacementTestDto } from './create-placement-test.dto';
 import { SubmitPlacementTestDto } from './submit-placement-test.dto';
@@ -29,6 +30,8 @@ export class PlacementTestService {
     private placementQuestionRepository: Repository<PlacementQuestion>,
     @InjectRepository(UserPlacementResult)
     private userPlacementResultRepository: Repository<UserPlacementResult>,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
   ) {}
 
   // ==================== LECTURER METHODS ====================
@@ -181,6 +184,12 @@ export class PlacementTestService {
       throw new ForbiddenException(canTake.message);
     }
 
+    // Fetch user entity
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('Không tìm thấy người dùng');
+    }
+
     // Grade the test
     const { score, totalPoints, skillBreakdown } = this.gradeTest(
       test.questions,
@@ -192,7 +201,7 @@ export class PlacementTestService {
 
     // Save result
     const result = this.userPlacementResultRepository.create({
-      user: { id: userId } as any,
+      user,
       test,
       score,
       totalPoints,

@@ -55,18 +55,27 @@ export class LessonsService {
     return this.lessonRepository.save(newLesson);
   }
 
-  // 2. Lấy danh sách bài học của 1 khóa (Sắp xếp theo thứ tự)
+  // 2. Lấy danh sách bài học của 1 khóa (Chỉ bài đã được duyệt)
   async findByCourse(courseId: string): Promise<Lesson[]> {
     return this.lessonRepository.find({
-      where: { course: { id: courseId } },
+      where: {
+        course: { id: courseId },
+        isPublished: true, // Chỉ lấy bài đã duyệt
+      },
       order: { orderIndex: 'ASC' }, // Sắp xếp tăng dần theo thứ tự bài
     });
   }
 
-  // 3. Xem chi tiết 1 bài học
+  // 3. Xem chi tiết 1 bài học (Chỉ bài đã được duyệt)
   async findOne(id: string): Promise<Lesson> {
-    const lesson = await this.lessonRepository.findOne({ where: { id } });
-    if (!lesson) throw new NotFoundException('Bài học không tồn tại');
+    const lesson = await this.lessonRepository.findOne({
+      where: {
+        id,
+        isPublished: true, // Chỉ lấy bài đã duyệt
+      },
+    });
+    if (!lesson)
+      throw new NotFoundException('Bài học không tồn tại hoặc chưa được duyệt');
     return lesson;
   }
 
@@ -107,6 +116,7 @@ export class LessonsService {
     if (!lesson) throw new NotFoundException('Bài học không tồn tại');
 
     lesson.approvalStatus = status;
+    lesson.isPublished = status === 'APPROVED'; // Set isPublished
     return this.lessonRepository.save(lesson);
   }
 
@@ -124,6 +134,39 @@ export class LessonsService {
       relations: ['course', 'course.creator'],
       order: { orderIndex: 'ASC' },
     });
+  }
+
+  // Admin: Update approval status with rejection reason
+  async updateApprovalStatus(
+    id: string,
+    status: 'APPROVED' | 'REJECTED',
+    rejectionReason?: string,
+  ) {
+    const lesson = await this.lessonRepository.findOne({
+      where: { id },
+      relations: ['course', 'course.creator'],
+    });
+
+    if (!lesson) {
+      throw new NotFoundException('Bài học không tồn tại');
+    }
+
+    lesson.approvalStatus = status;
+
+    // TODO: Send notification to lecturer if rejected
+    // You can implement email/notification service here
+    if (status === 'REJECTED' && rejectionReason) {
+      console.log(
+        `Lesson "${lesson.title}" rejected. Reason: ${rejectionReason}`,
+      );
+      // await this.notificationService.sendRejectionEmail(
+      //   lesson.course.creator.email,
+      //   lesson.title,
+      //   rejectionReason
+      // );
+    }
+
+    return this.lessonRepository.save(lesson);
   }
 
   // 🎮 Complete Lesson with Gamification

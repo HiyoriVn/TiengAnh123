@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import axios from "axios";
+import api from "@/utils/api";
 
 type QuestionType =
   | "MULTIPLE_CHOICE"
@@ -81,18 +81,13 @@ export default function TeacherCreatePlacementTestPage() {
 
     setSubmitting(true);
     try {
-      const token = localStorage.getItem("token");
-      await axios.post(
-        "http://localhost:3000/placement-test",
-        {
-          title,
-          description,
-          duration,
-          totalQuestions: questions.length,
-          questions,
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.post("/placement-test", {
+        title,
+        description,
+        duration,
+        totalQuestions: questions.length,
+        questions,
+      });
 
       alert("Tạo bài kiểm tra thành công!");
       router.push("/teacher/dashboard");

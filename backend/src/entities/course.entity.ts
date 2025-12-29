@@ -59,6 +59,10 @@ export class Course {
   })
   level: CourseLevel;
 
+  // Trạng thái duyệt của admin
+  @Column({ name: 'is_published', default: false })
+  isPublished: boolean;
+
   // Quan hệ: Nhiều khóa học thuộc về 1 người tạo
   @ManyToOne(() => User, (user) => user.createdCourses)
   @JoinColumn({ name: 'creator_id' }) // Tên cột trong DB là creator_id

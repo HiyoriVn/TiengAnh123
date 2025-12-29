@@ -10,6 +10,7 @@ import {
   Eye,
   User,
   Calendar,
+  Trash2,
 } from "lucide-react";
 
 interface Course {
@@ -19,7 +20,7 @@ interface Course {
   coverImage?: string;
   price: number;
   level: string;
-  isPublished: boolean;
+  status: "DRAFT" | "PUBLISHED";
   creator: {
     id: string;
     fullName: string;
@@ -68,9 +69,9 @@ export default function AdminContentPage() {
 
     // Status filter
     if (filter === "published") {
-      filtered = filtered.filter((course) => course.isPublished);
+      filtered = filtered.filter((course) => course.status === "PUBLISHED");
     } else if (filter === "draft") {
-      filtered = filtered.filter((course) => !course.isPublished);
+      filtered = filtered.filter((course) => course.status === "DRAFT");
     }
 
     // Search filter
@@ -94,7 +95,7 @@ export default function AdminContentPage() {
     }
 
     try {
-      await api.patch(`/courses/${courseId}`, { isPublished: true });
+      await api.patch(`/courses/${courseId}/approval`, { isPublished: true });
       alert("Duyệt khóa học thành công!");
       fetchCourses();
     } catch (error) {
@@ -112,13 +113,41 @@ export default function AdminContentPage() {
     }
 
     try {
-      await api.patch(`/courses/${courseId}`, { isPublished: false });
+      await api.patch(`/courses/${courseId}/approval`, { isPublished: false });
       // TODO: Send notification to creator with reason
       alert("Đã ẩn khóa học và gửi thông báo cho giảng viên!");
       fetchCourses();
     } catch (error) {
       console.error("Failed to reject course:", error);
       alert("Không thể từ chối khóa học. Vui lòng thử lại.");
+    }
+  };
+
+  const handleDelete = async (courseId: string, courseTitle: string) => {
+    if (
+      !confirm(
+        `Bạn có chắc muốn XÓA VĨNH VIỄN khóa học "${courseTitle}"?\n\nHành động này KHÔNG THỂ HOÀN TÁC!`
+      )
+    ) {
+      return;
+    }
+
+    // Double confirm for safety
+    if (
+      !confirm(
+        "Xác nhận lần cuối: Tất cả dữ liệu liên quan (bài học, bài tập, đăng ký) sẽ bị xóa. Tiếp tục?"
+      )
+    ) {
+      return;
+    }
+
+    try {
+      await api.delete(`/courses/${courseId}`);
+      alert("Đã xóa khóa học thành công!");
+      fetchCourses();
+    } catch (error) {
+      console.error("Failed to delete course:", error);
+      alert("Không thể xóa khóa học. Vui lòng thử lại.");
     }
   };
 
@@ -134,8 +163,10 @@ export default function AdminContentPage() {
     <div className="max-w-7xl mx-auto px-4 py-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white mb-2">Duyệt nội dung</h1>
-        <p className="text-gray-400">Phê duyệt khóa học từ giảng viên</p>
+        <h1 className="text-3xl font-bold text-white mb-2">Duyệt khóa học</h1>
+        <p className="text-gray-400">
+          Phê duyệt khóa học từ giảng viên (Bài học được duyệt riêng)
+        </p>
       </div>
 
       {/* Filters & Search */}
@@ -234,12 +265,12 @@ export default function AdminContentPage() {
                     </div>
                     <span
                       className={`ml-4 px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
-                        course.isPublished
+                        course.status === "PUBLISHED"
                           ? "bg-green-500/10 text-green-400"
                           : "bg-yellow-500/10 text-yellow-400"
                       }`}
                     >
-                      {course.isPublished ? "Đã duyệt" : "Chờ duyệt"}
+                      {course.status === "PUBLISHED" ? "Đã duyệt" : "Chờ duyệt"}
                     </span>
                   </div>
 
@@ -294,7 +325,7 @@ export default function AdminContentPage() {
                       <Eye className="w-4 h-4" />
                       Xem chi tiết
                     </button>
-                    {!course.isPublished ? (
+                    {course.status === "DRAFT" ? (
                       <>
                         <button
                           onClick={() => handleApprove(course.id)}
@@ -305,7 +336,7 @@ export default function AdminContentPage() {
                         </button>
                         <button
                           onClick={() => handleReject(course.id)}
-                          className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
+                          className="flex items-center gap-2 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors text-sm font-medium"
                         >
                           <XCircle className="w-4 h-4" />
                           Từ chối
@@ -320,6 +351,13 @@ export default function AdminContentPage() {
                         Ẩn khóa học
                       </button>
                     )}
+                    <button
+                      onClick={() => handleDelete(course.id, course.title)}
+                      className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium ml-auto"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Xóa
+                    </button>
                   </div>
                 </div>
               </div>

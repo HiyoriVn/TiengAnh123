@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { PlacementTest } from '../entities/placement-test.entity';
 import { PlacementQuestion } from '../entities/placement-question.entity';
 import { UserPlacementResult } from '../entities/user-placement-result.entity';
+import { User } from '../entities/user.entity';
 import { PlacementTestService } from './placement-test.service';
 import { PlacementTestController } from './placement-test.controller';
 
@@ -12,6 +13,7 @@ import { PlacementTestController } from './placement-test.controller';
       PlacementTest,
       PlacementQuestion,
       UserPlacementResult,
+      User,
     ]),
   ],
   providers: [PlacementTestService],

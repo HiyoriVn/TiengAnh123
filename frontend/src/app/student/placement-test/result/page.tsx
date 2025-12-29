@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import axios from "axios";
+import api from "@/utils/api";
 
 interface PlacementResult {
   id: string;
@@ -39,13 +39,7 @@ export default function StudentPlacementResultPage() {
 
   const fetchResult = async () => {
     try {
-      const token = localStorage.getItem("token");
-      const config = { headers: { Authorization: `Bearer ${token}` } };
-
-      const resultRes = await axios.get(
-        "http://localhost:3000/placement-test/my-result",
-        config
-      );
+      const resultRes = await api.get("/placement-test/my-result");
       if (!resultRes.data) {
         alert("Bạn chưa hoàn thành bài kiểm tra");
         router.push("/student/courses");
@@ -53,10 +47,7 @@ export default function StudentPlacementResultPage() {
       }
       setResult(resultRes.data);
 
-      const coursesRes = await axios.get(
-        "http://localhost:3000/courses",
-        config
-      );
+      const coursesRes = await api.get("/courses");
       const filtered = coursesRes.data.filter(
         (c: Course) => c.level === resultRes.data.level || c.level === "ALL"
       );

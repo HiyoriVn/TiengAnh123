@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Course } from '../entities/course.entity';
+import { Course, CourseStatus } from '../entities/course.entity';
 import { User } from '../entities/user.entity';
 import { CreateCourseDto } from './create-course.dto';
 import { UpdateCourseDto } from './update-course.dto';
@@ -26,12 +26,16 @@ export class CoursesService {
     return this.courseRepository.save(newCourse);
   }
 
-  // 2. Lấy tất cả khóa học (Có thể dùng cho trang chủ)
+  // 2. Lấy tất cả khóa học (Chỉ khóa học đã được duyệt)
   async findAll(): Promise<Course[]> {
-    return this.courseRepository.find({
-      relations: ['creator', 'lessons', 'enrollments'], // Lấy kèm thông tin người tạo và thống kê
-      order: { createdAt: 'DESC' },
-    });
+    return this.courseRepository
+      .createQueryBuilder('course')
+      .leftJoinAndSelect('course.creator', 'creator')
+      .where('course.isPublished = :isPublished', { isPublished: true })
+      .loadRelationCountAndMap('course.lessonsCount', 'course.lessons')
+      .loadRelationCountAndMap('course.enrollmentsCount', 'course.enrollments')
+      .orderBy('course.createdAt', 'DESC')
+      .getMany();
   }
 
   // 2.5. Lấy khóa học của giảng viên cụ thể
@@ -68,5 +72,34 @@ export class CoursesService {
 
     Object.assign(course, updateCourseDto); // Update các trường mới
     return this.courseRepository.save(course);
+  }
+
+  // 5. Admin duyệt/ẩn khóa học (Chỉ Admin)
+  async updateApproval(id: string, isPublished: boolean): Promise<Course> {
+    const course = await this.courseRepository.findOne({
+      where: { id },
+      relations: ['creator'],
+    });
+
+    if (!course) {
+      throw new NotFoundException('Không tìm thấy khóa học');
+    }
+
+    course.status = isPublished ? CourseStatus.PUBLISHED : CourseStatus.DRAFT;
+    course.isPublished = isPublished; // Set isPublished field
+    return this.courseRepository.save(course);
+  }
+
+  // 6. Xóa khóa học (Chỉ Admin)
+  async remove(id: string): Promise<void> {
+    const course = await this.courseRepository.findOne({
+      where: { id },
+    });
+
+    if (!course) {
+      throw new NotFoundException('Không tìm thấy khóa học');
+    }
+
+    await this.courseRepository.remove(course);
   }
 }

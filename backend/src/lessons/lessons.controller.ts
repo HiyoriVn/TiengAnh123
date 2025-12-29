@@ -29,6 +29,22 @@ export class LessonsController {
     return this.lessonsService.create(createLessonDto, req.user);
   }
 
+  // API: Lấy danh sách bài chờ duyệt (Chỉ Admin)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN')
+  @Get('pending/all')
+  findPending() {
+    return this.lessonsService.findPendingLessons();
+  }
+
+  // API: Admin lấy tất cả lessons
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN')
+  @Get('admin/all')
+  findAllForAdmin() {
+    return this.lessonsService.findAllForAdmin();
+  }
+
   // API: Lấy danh sách bài học của 1 khóa
   // URL: GET /lessons/course/:courseId
   @Get('course/:courseId')
@@ -54,23 +70,7 @@ export class LessonsController {
     return this.lessonsService.update(id, updateLessonDto, req.user);
   }
 
-  // API: Lấy danh sách bài chờ duyệt (Chỉ Admin)
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('ADMIN')
-  @Get('pending/all')
-  findPending() {
-    return this.lessonsService.findPendingLessons();
-  }
-
-  // API: Admin lấy tất cả lessons
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('ADMIN')
-  @Get('admin/all')
-  findAllForAdmin() {
-    return this.lessonsService.findAllForAdmin();
-  }
-
-  // API: Duyệt bài (Chỉ Admin)
+  // API: Duyệt bài (Chỉ Admin) - URL cũ
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('ADMIN')
   @Patch(':id/approve')
@@ -79,6 +79,22 @@ export class LessonsController {
     @Body('status') status: 'APPROVED' | 'REJECTED',
   ) {
     return this.lessonsService.approveLesson(id, status);
+  }
+
+  // API: Duyệt bài (Chỉ Admin) - URL mới
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN')
+  @Patch(':id/approval')
+  updateApproval(
+    @Param('id') id: string,
+    @Body()
+    body: { approvalStatus: 'APPROVED' | 'REJECTED'; rejectionReason?: string },
+  ) {
+    return this.lessonsService.updateApprovalStatus(
+      id,
+      body.approvalStatus,
+      body.rejectionReason,
+    );
   }
 
   // 🎮 API: Complete Lesson (Student)

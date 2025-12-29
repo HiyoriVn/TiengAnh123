@@ -73,11 +73,11 @@ export class User {
   @Column({ default: 'ACTIVE' })
   status: string;
 
-  @Column({ nullable: true, name: 'reset_password_token' })
-  resetPasswordToken: string;
+  @Column({ type: 'varchar', nullable: true, name: 'reset_password_token' })
+  resetPasswordToken: string | null;
 
-  @Column({ nullable: true, name: 'reset_password_expiry' })
-  resetPasswordExpiry: Date;
+  @Column({ type: 'timestamp', nullable: true, name: 'reset_password_expiry' })
+  resetPasswordExpiry: Date | null;
 
   // Mối quan hệ 1: Một user có thể tạo nhiều khóa học (Giảng viên)
   @OneToMany(() => Course, (course) => course.creator)

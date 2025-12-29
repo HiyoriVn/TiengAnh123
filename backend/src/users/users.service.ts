@@ -7,7 +7,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { User } from '../entities/user.entity';
+import { User, UserRole } from '../entities/user.entity';
 import { CreateUserDto } from './create-user.dto';
 
 @Injectable()
@@ -88,6 +88,15 @@ export class UsersService {
     if (!user) throw new NotFoundException('Người dùng không tồn tại');
 
     user.status = status;
+    return this.usersRepository.save(user);
+  }
+
+  // 2b. Cập nhật role (STUDENT → LECTURER → ADMIN)
+  async updateRole(id: string, role: UserRole): Promise<User> {
+    const user = await this.usersRepository.findOne({ where: { id } });
+    if (!user) throw new NotFoundException('Người dùng không tồn tại');
+
+    user.role = role;
     return this.usersRepository.save(user);
   }
 

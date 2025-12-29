@@ -185,7 +185,10 @@ export default function TeacherDashboard() {
           <h2 className="text-2xl md:text-3xl font-bold text-primary dark:text-ice">
             Xin chào, {user?.fullName || "Giảng viên"}! 👋
           </h2>
-          <p className="text-gray-400 mt-1" suppressHydrationWarning>
+          <p
+            className="text-text-sub-light dark:text-text-sub-dark mt-1"
+            suppressHydrationWarning
+          >
             {currentDate}
           </p>
         </div>

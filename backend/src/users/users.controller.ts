@@ -18,6 +18,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { Put, Query } from '@nestjs/common';
 import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
+import { UserRole } from '../entities/user.entity';
 
 @Controller('users')
 export class UsersController {
@@ -54,6 +55,16 @@ export class UsersController {
     @Body('status') status: 'ACTIVE' | 'LOCKED',
   ) {
     return this.usersService.updateStatus(id, status);
+  }
+
+  // API: Đổi role user (Chỉ Admin)
+  // URL: PATCH /users/:id/role
+  // Body: { "role": "STUDENT" | "LECTURER" | "ADMIN" }
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN')
+  @Patch(':id/role')
+  updateRole(@Param('id') id: string, @Body('role') role: UserRole) {
+    return this.usersService.updateRole(id, role);
   }
 
   // API 3: Update user info (Admin)

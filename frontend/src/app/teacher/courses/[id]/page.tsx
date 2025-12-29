@@ -82,7 +82,17 @@ export default function CourseManagement() {
   return (
     <div className="max-w-5xl mx-auto p-8">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">{course.title}</h1>
+        <div>
+          <h1 className="text-3xl font-bold">{course.title}</h1>
+          <button
+            onClick={() =>
+              (window.location.href = `/teacher/courses/${id}/edit`)
+            }
+            className="mt-2 text-sm text-blue-600 hover:text-blue-800 hover:underline"
+          >
+            ✏️ Chỉnh sửa thông tin khóa học
+          </button>
+        </div>
         <span
           className={`px-3 py-1 rounded text-sm font-bold ${
             course.status === "PUBLISHED"

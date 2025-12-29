@@ -44,19 +44,17 @@ const MENU_ITEMS: Record<
     },
     {
       icon: "quiz",
-      label: "Bài kiểm tra đầu vào",
-      href: "/teacher/placement-test/create",
+      label: "Quản lý kiểm tra đầu vào",
+      href: "/teacher/placement-test",
     },
-    { icon: "group", label: "Học viên", href: "/teacher/students" },
     { icon: "folder", label: "Tài liệu", href: "/teacher/documents" },
     { icon: "grade", label: "Chấm điểm", href: "/teacher/grading" },
   ],
   ADMIN: [
     { icon: "dashboard", label: "Tổng quan", href: "/admin/dashboard" },
     { icon: "people", label: "Quản lý người dùng", href: "/admin/users" },
-    { icon: "school", label: "Duyệt nội dung", href: "/admin/content" },
-    { icon: "bar_chart", label: "Báo cáo", href: "/admin/reports" },
-    { icon: "settings", label: "Cài đặt", href: "/admin/settings" },
+    { icon: "school", label: "Duyệt khóa học", href: "/admin/content" },
+    { icon: "book", label: "Duyệt bài học", href: "/admin/lessons" },
   ],
 };
 

@@ -26,4 +26,20 @@ api.interceptors.request.use(
   }
 );
 
+// Interceptor: Xử lý response lỗi
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // Nếu lỗi 401 (Unauthorized) -> logout tự động
+    if (error.response?.status === 401) {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("user_info");
+        window.location.href = "/login";
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default api;

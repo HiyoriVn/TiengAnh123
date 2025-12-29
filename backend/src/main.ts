@@ -9,7 +9,14 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   app.useGlobalPipes(new ValidationPipe());
-  app.enableCors();
+
+  // CORS config: Chỉ cho phép frontend gọi request
+  app.enableCors({
+    origin: ['http://localhost:3001', 'http://localhost:3000'], // Frontend URLs
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  });
 
   // Cấu hình phục vụ file tĩnh:
   // Mọi file trong thư mục "uploads" sẽ truy cập được qua đường dẫn gốc

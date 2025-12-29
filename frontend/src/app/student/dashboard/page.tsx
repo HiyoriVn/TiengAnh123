@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks";
-import { getCourses } from "@/lib/api";
+import api from "@/utils/api";
 
 interface CourseData {
   id: string;
@@ -65,27 +65,16 @@ export default function StudentDashboard() {
 
     const fetchCourses = async () => {
       try {
-        const token = localStorage.getItem("token");
-        const response = await fetch(
-          "http://localhost:3000/enrollments/my-courses",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        if (response.ok) {
-          const data = await response.json();
-          if (data && data.length > 0) {
-            const firstEnrollment = data[0];
-            setActiveCourse({
-              id: firstEnrollment.course.id,
-              title: firstEnrollment.course.title,
-              coverUrl: firstEnrollment.course.coverUrl,
-              unit: "Bắt đầu ngay",
-              progress: firstEnrollment.progress || 0,
-            });
-          }
+        const { data } = await api.get("/enrollments/my-courses");
+        if (data && data.length > 0) {
+          const firstEnrollment = data[0];
+          setActiveCourse({
+            id: firstEnrollment.course.id,
+            title: firstEnrollment.course.title,
+            coverUrl: firstEnrollment.course.coverUrl,
+            unit: "Bắt đầu ngay",
+            progress: firstEnrollment.progress || 0,
+          });
         }
       } catch (err) {
         console.error("Failed to fetch courses", err);
@@ -96,19 +85,9 @@ export default function StudentDashboard() {
 
     const fetchAchievements = async () => {
       try {
-        const response = await fetch(
-          "http://localhost:3000/gamification/my-achievements",
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
-        if (response.ok) {
-          const data = await response.json();
-          // Lấy 3 huy hiệu mới nhất
-          setRecentAchievements(data.slice(0, 3));
-        }
+        const { data } = await api.get("/gamification/my-achievements");
+        // Lấy 3 huy hiệu mới nhất
+        setRecentAchievements(data.slice(0, 3));
       } catch (err) {
         console.error("Failed to fetch achievements", err);
       }
@@ -206,7 +185,7 @@ export default function StudentDashboard() {
                 Bạn chưa đăng ký khóa học nào.
               </p>
               <Link
-                href="/courses"
+                href="/student/courses"
                 className="text-primary font-bold hover:underline"
               >
                 Xem danh sách khóa học

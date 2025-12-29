@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import axios from "axios";
+import api from "@/utils/api";
 
 interface Course {
   id: string;
@@ -50,39 +50,24 @@ export default function StudentCoursesPage() {
 
   const fetchData = async () => {
     try {
-      const token = localStorage.getItem("token");
-      const config = { headers: { Authorization: `Bearer ${token}` } };
-
       // Fetch enrollments
-      const enrollRes = await axios.get(
-        "http://localhost:3000/enrollments/my-courses",
-        config
-      );
+      const enrollRes = await api.get("/enrollments/my-courses");
       setEnrollments(enrollRes.data);
 
       // Fetch all courses
-      const coursesRes = await axios.get(
-        "http://localhost:3000/courses",
-        config
-      );
+      const coursesRes = await api.get("/courses");
       setAllCourses(
         coursesRes.data.filter((c: Course) => c.status === "PUBLISHED")
       );
 
       // Check placement test eligibility
       try {
-        const placementRes = await axios.get(
-          "http://localhost:3000/placement-test/my-result",
-          config
-        );
+        const placementRes = await api.get("/placement-test/my-result");
         setPlacementResult(placementRes.data);
         setCanTakeTest(false);
       } catch {
         // No result yet, check if can take test
-        const eligibleRes = await axios.get(
-          "http://localhost:3000/placement-test/check-eligibility",
-          config
-        );
+        const eligibleRes = await api.get("/placement-test/check-eligibility");
         setCanTakeTest(eligibleRes.data.canTake);
       }
     } catch (error) {

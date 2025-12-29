@@ -114,8 +114,12 @@ export default function AdminUsersPage() {
       return;
     }
 
+    if (!confirm(`Bạn có chắc muốn đổi vai trò sang ${newRole}?`)) {
+      return;
+    }
+
     try {
-      await api.patch(`/users/${userId}`, { role: newRole.toUpperCase() });
+      await api.patch(`/users/${userId}/role`, { role: newRole.toUpperCase() });
       alert("Thay đổi vai trò thành công!");
       fetchUsers();
     } catch (error) {
@@ -318,13 +322,20 @@ export default function AdminUsersPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${roleBadge.color} cursor-pointer hover:opacity-80`}
-                          onClick={() => handleChangeRole(user.id, user.role)}
-                          title="Click để thay đổi vai trò"
-                        >
-                          {roleBadge.label}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${roleBadge.color}`}
+                          >
+                            {roleBadge.label}
+                          </span>
+                          <button
+                            onClick={() => handleChangeRole(user.id, user.role)}
+                            className="text-xs text-blue-600 hover:text-blue-800 hover:underline"
+                            title="Thay đổi vai trò"
+                          >
+                            Đổi
+                          </button>
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span

@@ -136,15 +136,19 @@ export class AuthService {
     // Tìm user với token hợp lệ và chưa hết hạn
     const user = await this.usersService.findByResetToken(hashedToken);
 
-    if (!user || user.resetPasswordExpiry < new Date()) {
+    if (
+      !user ||
+      !user.resetPasswordExpiry ||
+      user.resetPasswordExpiry < new Date()
+    ) {
       throw new BadRequestException('Token không hợp lệ hoặc đã hết hạn');
     }
 
     // Hash mật khẩu mới
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     user.password = hashedPassword;
-    user.resetPasswordToken = null as any;
-    user.resetPasswordExpiry = null as any;
+    user.resetPasswordToken = null;
+    user.resetPasswordExpiry = null;
 
     await this.usersService.save(user);
 

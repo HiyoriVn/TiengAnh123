@@ -13,6 +13,8 @@ import { CoursesService } from './courses.service';
 import { CreateCourseDto } from './create-course.dto';
 import { UpdateCourseDto } from './update-course.dto';
 import { AuthGuard } from '@nestjs/passport'; // Lính gác
+import { Roles } from '../auth/roles.decorator';
+import { RolesGuard } from '../auth/roles.guard';
 
 @Controller('courses')
 export class CoursesController {
@@ -45,6 +47,17 @@ export class CoursesController {
     return this.coursesService.findOne(id);
   }
 
+  // API: Admin duyệt/ẩn khóa học (Chỉ Admin)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN')
+  @Patch(':id/approval')
+  updateApproval(
+    @Param('id') id: string,
+    @Body('isPublished') isPublished: boolean,
+  ) {
+    return this.coursesService.updateApproval(id, isPublished);
+  }
+
   // API: Sửa khóa học (Yêu cầu đăng nhập & Chính chủ)
   @UseGuards(AuthGuard('jwt'))
   @Patch(':id')
@@ -54,5 +67,14 @@ export class CoursesController {
     @Request() req,
   ) {
     return this.coursesService.update(id, updateCourseDto, req.user);
+  }
+
+  // API: Xóa khóa học (Chỉ Admin)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN')
+  @Delete(':id')
+  async remove(@Param('id') id: string) {
+    await this.coursesService.remove(id);
+    return { message: 'Xóa khóa học thành công' };
   }
 }
