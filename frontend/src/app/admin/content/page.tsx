@@ -53,7 +53,7 @@ export default function AdminContentPage() {
   const fetchCourses = async () => {
     try {
       setLoading(true);
-      const response = await api.get("/courses");
+      const response = await api.get("/courses/admin/all"); // Admin endpoint
       setCourses(response.data);
       setFilteredCourses(response.data);
     } catch (error) {
@@ -163,10 +163,10 @@ export default function AdminContentPage() {
     <div className="max-w-7xl mx-auto px-4 py-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white mb-2">Duyệt khóa học</h1>
-        <p className="text-gray-400">
-          Phê duyệt khóa học từ giảng viên (Bài học được duyệt riêng)
-        </p>
+        <h1 className="text-2xl md:text-3xl font-bold text-primary dark:text-ice">
+          Duyệt khóa học
+        </h1>
+        <p className="text-gray-400">Phê duyệt khóa học từ giảng viên</p>
       </div>
 
       {/* Filters & Search */}

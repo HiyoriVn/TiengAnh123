@@ -34,6 +34,14 @@ export class CoursesController {
     return this.coursesService.findAll();
   }
 
+  // API: Admin xem tất cả khóa học (Bao gồm cả chưa duyệt)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN')
+  @Get('/admin/all')
+  findAllForAdmin() {
+    return this.coursesService.findAllForAdmin();
+  }
+
   // API: Xem khóa học của giảng viên hiện tại (Yêu cầu đăng nhập)
   @UseGuards(AuthGuard('jwt'))
   @Get('/my-courses')

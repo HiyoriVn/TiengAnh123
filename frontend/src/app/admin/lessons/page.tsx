@@ -172,7 +172,9 @@ export default function AdminLessonsPage() {
     <div className="max-w-7xl mx-auto px-4 py-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white mb-2">Duyệt bài học</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-primary dark:text-ice">
+          Duyệt bài học
+        </h1>
         <p className="text-gray-400">Phê duyệt bài học từ giảng viên</p>
       </div>
 

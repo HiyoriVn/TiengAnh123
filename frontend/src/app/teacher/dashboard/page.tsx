@@ -196,44 +196,44 @@ export default function TeacherDashboard() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-surface-dark p-6 rounded-xl border border-white/5 relative overflow-hidden">
+        <div className="p-6 rounded-xl border border-black/20 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-24 h-24 bg-brand-blue-med/10 rounded-full -mr-12 -mt-12" />
           <div className="relative">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-gray-400 text-sm font-medium">Học viên</p>
+              <p className="text-primary text-sm font-medium">Học viên</p>
               <Users className="w-5 h-5 text-brand-blue-med" />
             </div>
-            <h3 className="text-3xl font-bold text-white">
+            <h3 className="text-3xl font-bold text-primary">
               {stats.totalStudents.toLocaleString()}
             </h3>
-            <p className="text-gray-500 text-sm mt-2">Tổng học viên</p>
+            <p className="text-primary text-sm mt-2">Tổng học viên</p>
           </div>
         </div>
 
-        <div className="bg-surface-dark p-6 rounded-xl border border-white/5 relative overflow-hidden">
+        <div className="p-6 rounded-xl border border-black/20 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-24 h-24 bg-orange-500/10 rounded-full -mr-12 -mt-12" />
           <div className="relative">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-gray-400 text-sm font-medium">Cần chấm</p>
+              <p className="text-primary text-sm font-medium">Cần chấm</p>
               <ClipboardCheck className="w-5 h-5 text-orange-500" />
             </div>
-            <h3 className="text-3xl font-bold text-white">
+            <h3 className="text-3xl font-bold text-primary">
               {stats.pendingGrading}
             </h3>
           </div>
         </div>
 
-        <div className="bg-surface-dark p-6 rounded-xl border border-white/5 relative overflow-hidden">
+        <div className="p-6 rounded-xl border border-black/20 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-24 h-24 bg-brand-teal/10 rounded-full -mr-12 -mt-12" />
           <div className="relative">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-gray-400 text-sm font-medium">Khóa học</p>
+              <p className="text-primary text-sm font-medium">Khóa học</p>
               <BookOpen className="w-5 h-5 text-brand-teal" />
             </div>
-            <h3 className="text-3xl font-bold text-white">
+            <h3 className="text-3xl font-bold text-primary">
               {stats.activeCourses}
             </h3>
-            <p className="text-gray-500 text-sm mt-2">Đang hoạt động</p>
+            <p className="text-primary text-sm mt-2">Đang hoạt động</p>
           </div>
         </div>
       </div>
@@ -244,7 +244,7 @@ export default function TeacherDashboard() {
           <Link
             key={action.id}
             href={action.href}
-            className="bg-gradient-to-br from-brand-peach/20 to-orange-500/10 hover:from-brand-peach/30 hover:to-orange-500/20 border border-brand-peach/20 p-6 rounded-xl text-left transition-all group block"
+            className="bg-white hover:from-brand-peach/30 hover:to-orange-500/20 border border-brand-peach/20 p-6 rounded-xl text-left transition-all group block"
           >
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 bg-brand-peach/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -259,10 +259,10 @@ export default function TeacherDashboard() {
                 )}
               </div>
               <div className="flex-1">
-                <h3 className="text-white font-semibold mb-1">
+                <h3 className="text-primary font-semibold mb-1">
                   {action.title}
                 </h3>
-                <p className="text-gray-400 text-sm">{action.description}</p>
+                <p className="text-primary text-sm">{action.description}</p>
               </div>
             </div>
           </Link>
@@ -277,7 +277,7 @@ export default function TeacherDashboard() {
             <h3 className="font-bold text-white">Khóa học gần đây</h3>
             <Link
               href="/teacher/courses"
-              className="text-xs font-bold text-brand-teal hover:underline"
+              className="text-xs font-bold text-white hover:underline"
             >
               Xem tất cả
             </Link>
@@ -285,11 +285,11 @@ export default function TeacherDashboard() {
           <div className="space-y-4">
             {recentCourses.length === 0 ? (
               <div className="text-center py-8 text-gray-400">
-                <BookOpen className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                <BookOpen className="w-12 h-12 mx-auto mb-2" />
                 <p className="text-sm">Chưa có khóa học nào</p>
                 <Link
                   href="/teacher/courses/create"
-                  className="text-brand-teal hover:underline text-sm mt-2 inline-block"
+                  className="text-primary hover:underline text-sm mt-2 inline-block"
                 >
                   Tạo khóa học đầu tiên
                 </Link>
@@ -301,7 +301,7 @@ export default function TeacherDashboard() {
                   href={`/teacher/courses/${course.id}`}
                   className="flex items-start gap-4 p-4 rounded-lg hover:bg-white/5 transition-colors cursor-pointer border border-white/5"
                 >
-                  <div className="w-16 h-16 bg-gradient-to-br from-brand-blue-med/20 to-brand-teal/20 rounded-lg flex items-center justify-center overflow-hidden">
+                  <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center overflow-hidden">
                     {course.coverImage ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img

@@ -38,6 +38,17 @@ export class CoursesService {
       .getMany();
   }
 
+  // 2.1. Admin lấy TẤT CẢ khóa học (bao gồm cả chưa duyệt)
+  async findAllForAdmin(): Promise<Course[]> {
+    return this.courseRepository
+      .createQueryBuilder('course')
+      .leftJoinAndSelect('course.creator', 'creator')
+      .loadRelationCountAndMap('course.lessonsCount', 'course.lessons')
+      .loadRelationCountAndMap('course.enrollmentsCount', 'course.enrollments')
+      .orderBy('course.createdAt', 'DESC')
+      .getMany();
+  }
+
   // 2.5. Lấy khóa học của giảng viên cụ thể
   async findByCreator(creatorId: string): Promise<Course[]> {
     return this.courseRepository.find({
@@ -94,10 +105,25 @@ export class CoursesService {
   async remove(id: string): Promise<void> {
     const course = await this.courseRepository.findOne({
       where: { id },
+      relations: ['enrollments', 'lessons'],
     });
 
     if (!course) {
       throw new NotFoundException('Không tìm thấy khóa học');
+    }
+
+    // Kiểm tra xem có học viên đã đăng ký chưa
+    if (course.enrollments && course.enrollments.length > 0) {
+      throw new ForbiddenException(
+        `Không thể xóa khóa học này vì đã có ${course.enrollments.length} học viên đăng ký. Vui lòng ẩn khóa học thay vì xóa.`,
+      );
+    }
+
+    // Kiểm tra xem có bài học nào chưa
+    if (course.lessons && course.lessons.length > 0) {
+      throw new ForbiddenException(
+        `Không thể xóa khóa học này vì đã có ${course.lessons.length} bài học. Vui lòng xóa tất cả bài học trước hoặc ẩn khóa học.`,
+      );
     }
 
     await this.courseRepository.remove(course);

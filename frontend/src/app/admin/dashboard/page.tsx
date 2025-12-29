@@ -45,7 +45,7 @@ export default function AdminDashboard() {
       setLoading(true);
       const [usersRes, coursesRes] = await Promise.all([
         api.get("/users"),
-        api.get("/courses"),
+        api.get("/courses/admin/all"), // Admin endpoint to get all courses
       ]);
 
       const users = usersRes.data;
@@ -195,7 +195,9 @@ export default function AdminDashboard() {
 
           {/* Quick Actions */}
           <div className="flex flex-col gap-4">
-            <h3 className="text-lg font-bold text-white">Quản lý nhanh</h3>
+            <h3 className="text-2xl md:text-3xl font-bold text-primary dark:text-ice">
+              Quản lý nhanh
+            </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Link
                 href="/admin/users"
