@@ -320,13 +320,13 @@ export default function TeacherDashboard() {
                     <div className="flex items-center gap-4 mt-2">
                       <div className="flex items-center gap-1">
                         <Users className="w-3 h-3 text-gray-400" />
-                        <span className="text-xs text-gray-400">
+                        <span className="text-sm text-white">
                           {course.enrollments?.length || 0} học viên
                         </span>
                       </div>
                       <div className="flex items-center gap-1">
                         <BookOpen className="w-3 h-3 text-gray-400" />
-                        <span className="text-xs text-gray-400">
+                        <span className="text-sm text-white">
                           {course.lessons?.length || 0} bài học
                         </span>
                       </div>
